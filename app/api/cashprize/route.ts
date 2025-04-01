@@ -3,11 +3,14 @@ import { getCashPrizeService } from "@/services/cashprize/getCashPrize";
 
 export async function GET() {
 
+  const { success, prize, error, timeRemaining } = await getCashPrizeService();
 
+  if (error) {
+    console.log({error})
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
-  const { data } = await getCashPrizeService();
+  console.log({prize});
 
-  console.log(data);
-
-  return NextResponse.json(data);
+  return NextResponse.json({ success, prize, timeRemaining });
 }
