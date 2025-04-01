@@ -1,5 +1,6 @@
 "use client"
 import { Button } from "@/components/ui/button"
+import { LogOut } from "lucide-react"
 import { useRouter } from "next/navigation"
 import React from "react"
 
@@ -18,5 +19,7 @@ export default function LogoutButton() {
 			router.push("/login")
 		}
 	}
-	return <Button className="cursor-pointer" onClick={logout}>Logout</Button>
+	return <Button className="cursor-pointer" variant="outline" size="icon" onClick={logout}>
+    <LogOut />
+  </Button>
 }
