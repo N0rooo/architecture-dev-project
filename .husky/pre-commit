@@ -1,3 +1,8 @@
 npx lint-staged
 npx tsc --noEmit
 
+pnpm run prettier
+pnpm run prettier:check
+pnpm run format
+pnpm run check
+pnpm run lint

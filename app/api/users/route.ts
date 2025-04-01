@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
-import { getUsersService } from "@/services/users/getUserService";
-import { createUserService } from "@/services/users/createUserService";
+import { NextResponse } from 'next/server';
+import { getUsersService } from '@/services/users/getUserService';
+import { createUserService } from '@/services/users/createUserService';
 
 export async function GET() {
   const limit = 10;
