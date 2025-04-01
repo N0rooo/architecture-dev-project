@@ -15,7 +15,7 @@ export default async function layout({ children }: { children: React.ReactNode }
   return (
     <div className="relative flex min-h-screen flex-col">
       <Header user={user} />
-      <section className="flex-1">{children}</section>
+      <section className="flex-1 mt-11">{children}</section>
     </div>
   );
 }
