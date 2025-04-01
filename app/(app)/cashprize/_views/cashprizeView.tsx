@@ -78,61 +78,56 @@ export default function CashprizeView() {
         <Card className="w-full bg-gradient-to-r from-slate-50 to-slate-100 shadow-md">
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-xl font-semibold text-slate-800">Prochain ticket</CardTitle>
-              <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
-                <Clock className="h-3 w-3 mr-1" />
+              <CardTitle className="text-xl font-semibold text-slate-800">
+                Prochain ticket
+              </CardTitle>
+              <Badge className="border-amber-200 bg-amber-50 text-amber-700" variant="outline">
+                <Clock className="mr-1 h-3 w-3" />
                 En attente
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="pb-2">
             <div className="flex flex-col gap-4">
-              <div className="flex items-center justify-center my-4">
+              <div className="my-4 flex items-center justify-center">
                 <div className="rounded-full bg-purple-100 p-5">
-                  <Hourglass className="h-10 w-10 text-purple-500 animate-pulse" />
+                  <Hourglass className="h-10 w-10 animate-pulse text-purple-500" />
                 </div>
               </div>
-              
+
               <div className="text-center">
                 <h3 className="text-2xl font-bold text-slate-800">{formatTime(countdown)}</h3>
-                <p className="text-slate-500 text-sm mt-1">avant votre prochain ticket gratuit</p>
+                <p className="mt-1 text-sm text-slate-500">avant votre prochain ticket gratuit</p>
               </div>
-              
+
               <div className="mt-2">
-                <div className="flex justify-between text-xs text-slate-500 mb-1">
+                <div className="mb-1 flex justify-between text-xs text-slate-500">
                   <span>En cours</span>
                   <span>Bientôt disponible</span>
                 </div>
-                <Progress 
-                  value={getProgressPercentage()} 
-                  className="h-2 bg-slate-200" 
-                />
+                <Progress className="h-2 bg-slate-200" value={getProgressPercentage()} />
               </div>
             </div>
           </CardContent>
-          <CardFooter className="pt-2 pb-4 flex-col gap-2">
-            <div className="grid grid-cols-2 gap-4 w-full mt-2">
-              <div className="flex items-center bg-slate-100 p-3 rounded-lg">
-                <Gift className="h-5 w-5 mr-2 text-amber-500" />
+          <CardFooter className="flex-col gap-2 pt-2 pb-4">
+            <div className="mt-2 grid w-full grid-cols-2 gap-4">
+              <div className="flex items-center rounded-lg bg-slate-100 p-3">
+                <Gift className="mr-2 h-5 w-5 text-amber-500" />
                 <div>
                   <p className="text-xs text-slate-500">Type de ticket</p>
                   <p className="text-sm font-medium">Gratuit</p>
                 </div>
               </div>
-              <div className="flex items-center bg-slate-100 p-3 rounded-lg">
-                <Trophy className="h-5 w-5 mr-2 text-amber-500" />
+              <div className="flex items-center rounded-lg bg-slate-100 p-3">
+                <Trophy className="mr-2 h-5 w-5 text-amber-500" />
                 <div>
                   <p className="text-xs text-slate-500">Récompense max</p>
                   <p className="text-sm font-medium">100 points</p>
                 </div>
               </div>
             </div>
-            
-            <Button
-              className="w-full mt-4"
-              variant="outline"
-              disabled={true}
-            >
+
+            <Button className="mt-4 w-full" disabled={true} variant="outline">
               <Clock className="mr-2 h-4 w-4" />
               Patientez pour votre prochain ticket
             </Button>
@@ -144,11 +139,16 @@ export default function CashprizeView() {
         <div className="flex w-full flex-col items-center">
           <Card className="mb-4 w-full bg-slate-50 p-4">
             <CardContent className="text-center">
-              <p className="mb-3">Vous pouvez obtenir un ticket gratuit toutes les heures pour gagner des points.</p>
-              <p className="text-sm text-muted-foreground">Les points gagnés vous permettent d'acheter des tickets premium avec de meilleures récompenses.</p>
+              <p className="mb-3">
+                Vous pouvez obtenir un ticket gratuit toutes les heures pour gagner des points.
+              </p>
+              <p className="text-muted-foreground text-sm">
+                Les points gagnés vous permettent d'acheter des tickets premium avec de meilleures
+                récompenses.
+              </p>
             </CardContent>
           </Card>
-          
+
           <Button
             className="text-lg"
             disabled={loading || (countdown !== null && countdown > 0)}

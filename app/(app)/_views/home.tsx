@@ -6,8 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useCountdown } from '@/context/countdownProvider';
-import { cn } from '@/lib/utils';
-import { Clock, Coins, Gift, HandCoins, Sparkles } from 'lucide-react';
+import { Clock, Gift, HandCoins, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function HomeView() {
@@ -17,30 +16,30 @@ export default function HomeView() {
   const userPoints = 350;
 
   const premiumTickets = [
-    { 
-      name: 'Argent', 
-      price: 100, 
+    {
+      name: 'Argent',
+      price: 100,
       minReward: 0,
       maxReward: 200,
       color: 'bg-slate-100',
-      textColor: 'text-slate-700'
+      textColor: 'text-slate-700',
     },
-    { 
-      name: 'Or', 
-      price: 250, 
+    {
+      name: 'Or',
+      price: 250,
       minReward: 50,
       maxReward: 500,
       color: 'bg-amber-100',
-      textColor: 'text-amber-700'
+      textColor: 'text-amber-700',
     },
-    { 
-      name: 'Platine', 
-      price: 500, 
+    {
+      name: 'Platine',
+      price: 500,
       minReward: 100,
       maxReward: 1000,
       color: 'bg-cyan-100',
-      textColor: 'text-cyan-700'
-    }
+      textColor: 'text-cyan-700',
+    },
   ];
 
   return (
@@ -88,13 +87,15 @@ export default function HomeView() {
         <div className="m-4 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">Tickets Premium</h2>
-            <p className="text-muted-foreground">Utilisez vos points pour acheter des tickets premium avec des récompenses plus élevées</p>
+            <p className="text-muted-foreground">
+              Utilisez vos points pour acheter des tickets premium avec des récompenses plus élevées
+            </p>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {premiumTickets.map((ticket, index) => (
-            <Card key={index} className={`${ticket.color} hover:shadow-lg transition-all`}>
+            <Card key={index} className={`${ticket.color} transition-all hover:shadow-lg`}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className={`${ticket.textColor} text-xl`}>{ticket.name}</CardTitle>
@@ -103,21 +104,19 @@ export default function HomeView() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col gap-2">
-                  <div className={`text-xl font-bold ${ticket.textColor} flex items-center gap-2 justify-center`}>
+                  <div
+                    className={`text-xl font-bold ${ticket.textColor} flex items-center justify-center gap-2`}
+                  >
                     {ticket.price} points
                   </div>
-                  <p className="text-center text-sm mt-2">
+                  <p className="mt-2 text-center text-sm">
                     Gagnez entre {ticket.minReward} et {ticket.maxReward} points
                   </p>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-center">
-                <Button 
-                  variant="default"
-                  className="w-full"
-                  disabled={userPoints < ticket.price}
-                >
-                  {userPoints >= ticket.price ? "Acheter & Gratter" : "Points insuffisants"}
+                <Button className="w-full" disabled={userPoints < ticket.price} variant="default">
+                  {userPoints >= ticket.price ? 'Acheter & Gratter' : 'Points insuffisants'}
                 </Button>
               </CardFooter>
             </Card>

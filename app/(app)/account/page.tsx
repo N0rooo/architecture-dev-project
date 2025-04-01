@@ -1,15 +1,33 @@
 'use client';
-import { ScratchToReveal } from '@/components/magicui/scratch-to-reveal';
-import type { CashPrize } from '@/types/types';
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Loader2, Clock, TrendingUp, Gift, Trophy, Award, Sparkles, User, Wallet, Calendar, Star } from 'lucide-react';
-import { useCountdown } from '@/context/countdownProvider';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import HowItWorks from '@/components/HowItWorks';
+import { ScratchToReveal } from '@/components/magicui/scratch-to-reveal';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { useCountdown } from '@/context/countdownProvider';
+import type { CashPrize } from '@/types/types';
+import {
+  Award,
+  Calendar,
+  Clock,
+  Gift,
+  Loader2,
+  Star,
+  TrendingUp,
+  Trophy,
+  User,
+  Wallet
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function AccountPage() {
   const [prize, setPrize] = useState<Omit<
@@ -30,7 +48,7 @@ export default function AccountPage() {
     memberSince: '15 janvier 2025',
     level: 7,
     pointsBalance: 1250,
-    vip: true
+    vip: true,
   };
 
   // Statistiques utilisateur
@@ -38,7 +56,7 @@ export default function AccountPage() {
     totalWon: 2350,
     scratched: 48,
     biggestWin: 500,
-    currentStreak: 7
+    currentStreak: 7,
   });
 
   // Historique des gains
@@ -97,12 +115,12 @@ export default function AccountPage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">        
+      <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between">
         <Card className="mt-4 md:mt-0 md:w-80">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <Avatar className="h-14 w-14 border-2 border-primary">
-                <AvatarImage src={user.avatar} alt={user.name} />
+              <Avatar className="border-primary h-14 w-14 border-2">
+                <AvatarImage alt={user.name} src={user.avatar} />
                 <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
               </Avatar>
               <div>
@@ -110,7 +128,7 @@ export default function AccountPage() {
                   <p className="font-semibold">{user.name}</p>
                   {user.vip && <Badge className="bg-amber-500">VIP</Badge>}
                 </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <div className="text-muted-foreground flex items-center gap-1 text-xs">
                   <User className="h-3 w-3" />
                   <span>Niveau {user.level}</span>
                 </div>
@@ -136,7 +154,7 @@ export default function AccountPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Tickets Grattés</CardTitle>
@@ -148,7 +166,7 @@ export default function AccountPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Plus Gros Gain</CardTitle>
@@ -160,7 +178,7 @@ export default function AccountPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-lg">Série Actuelle</CardTitle>
@@ -180,9 +198,11 @@ export default function AccountPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Ticket Gratuit Quotidien</CardTitle>
-                <CardDescription>Grattez votre ticket gratuit chaque jour pour gagner des points</CardDescription>
+                <CardDescription>
+                  Grattez votre ticket gratuit chaque jour pour gagner des points
+                </CardDescription>
               </div>
-              <Badge variant="outline" className="gap-1">
+              <Badge className="gap-1" variant="outline">
                 <Calendar className="h-3 w-3" /> Quotidien
               </Badge>
             </div>
@@ -191,13 +211,15 @@ export default function AccountPage() {
             {countdown !== null && countdown > 0 && (
               <div className="mb-4 w-full">
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Prochain ticket disponible dans:</span>
-                  <Badge variant="outline" className="flex items-center gap-1">
+                  <span className="text-muted-foreground text-sm">
+                    Prochain ticket disponible dans:
+                  </span>
+                  <Badge className="flex items-center gap-1" variant="outline">
                     <Clock className="h-3 w-3" />
                     <span>{formatTime(countdown)}</span>
                   </Badge>
                 </div>
-                <Progress value={Math.max(0, 100 - (countdown / 3600) * 100)} className="h-2" />
+                <Progress className="h-2" value={Math.max(0, 100 - (countdown / 3600) * 100)} />
               </div>
             )}
 
@@ -256,7 +278,7 @@ export default function AccountPage() {
             )}
           </CardContent>
           <CardFooter className="flex justify-center border-t pt-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <Star className="h-4 w-4 text-amber-400" />
               <span>Membre depuis: {user.memberSince}</span>
             </div>
@@ -272,12 +294,13 @@ export default function AccountPage() {
             <CardContent>
               <ul className="space-y-3">
                 {prizeHistory.map((item, index) => (
-                  <li key={index} className="flex items-center justify-between border-b pb-2 last:border-0">
+                  <li
+                    key={index}
+                    className="flex items-center justify-between border-b pb-2 last:border-0"
+                  >
                     <div>
                       <p className="font-medium">{item.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.date}
-                      </p>
+                      <p className="text-muted-foreground text-xs">{item.date}</p>
                     </div>
                     <span className="font-bold">{item.amount} pts</span>
                   </li>
@@ -285,13 +308,15 @@ export default function AccountPage() {
               </ul>
             </CardContent>
             <CardFooter>
-              <Button variant="outline" className="w-full">Voir Tout l'Historique</Button>
+              <Button className="w-full" variant="outline">
+                Voir Tout l'Historique
+              </Button>
             </CardFooter>
           </Card>
         </div>
       </div>
 
-    <HowItWorks />
+      <HowItWorks />
     </div>
   );
 }
