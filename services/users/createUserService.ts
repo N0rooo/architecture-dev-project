@@ -3,6 +3,8 @@ import { createAppServerClient } from "@/supabase/server";
 
 export const createUserService = async ({user}: {user: Omit<User, 'id' | 'created_at'>}): Promise<{ data: User | null, error: Error | null }> => {
   const supabase = await createAppServerClient();
+
+  
   const { data, error } = await supabase.from("users").insert({
     email: user.email,
     name: user.name,
