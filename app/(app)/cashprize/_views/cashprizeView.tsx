@@ -1,13 +1,13 @@
 'use client';
 import { ScratchToReveal } from '@/components/magicui/scratch-to-reveal';
-import type { CashPrize } from '@/types/types';
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Loader2, Clock, Gift, Hourglass, Trophy, Coins } from 'lucide-react';
-import { useCountdown } from '@/context/countdownProvider';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { useCountdown } from '@/context/countdownProvider';
+import type { CashPrize } from '@/types/types';
+import { Clock, Gift, Hourglass, Loader2, Trophy } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function CashprizeView() {
   const [prize, setPrize] = useState<Omit<
@@ -34,7 +34,7 @@ export default function CashprizeView() {
       }
 
       const data = await res.json();
-      const { success, prize, timeRemaining } = data;
+      const { prize, timeRemaining } = data;
       setPrize(prize);
 
       if (timeRemaining) {
@@ -64,10 +64,8 @@ export default function CashprizeView() {
     setRevealed(true);
   };
 
-  // Calculer le pourcentage pour la barre de progression
   const getProgressPercentage = () => {
     if (countdown === null) return 0;
-    // Supposons qu'une heure (3600 secondes) est le temps total d'attente
     return Math.max(0, 100 - (countdown / 3600) * 100);
   };
 

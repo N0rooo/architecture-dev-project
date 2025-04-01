@@ -50,7 +50,7 @@ export default function AccountPage() {
     vip: true,
   };
 
-  const [userStats,] = useState({
+  const [userStats] = useState({
     totalWon: 2350,
     scratched: 48,
     biggestWin: 500,
@@ -79,7 +79,7 @@ export default function AccountPage() {
       }
 
       const data = await res.json();
-      const { success, prize, timeRemaining } = data;
+      const { prize, timeRemaining } = data;
       setPrize(prize);
 
       if (timeRemaining) {

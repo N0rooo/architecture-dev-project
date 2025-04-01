@@ -1,5 +1,5 @@
 import { createAppServerClient } from '@/supabase/server';
-import { CashPrize, User } from '@/types/types';
+import { CashPrize } from '@/types/types';
 
 export const getCashPrizeService = async (): Promise<{
   success: boolean;
