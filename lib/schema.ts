@@ -11,4 +11,3 @@ export const userSchema = z.object({
   created_at: z.string(),
 });
 
-export type User = z.infer<typeof userSchema>;

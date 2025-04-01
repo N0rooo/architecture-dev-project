@@ -1,8 +1,7 @@
-import { faker } from "@faker-js/faker"
-import { User } from "@/lib/schema"
 import { createAppServerClient } from "@/supabase/server"
+import { User } from "@/types/types"
 
-export const getUsersService = async (limit: number = 10): Promise<{ data: User[] | null, error: Error | null }> => {
+export const getUsersService = async (limit: number = 10): Promise<{ data: User[] | null; error: Error | null }> => {
 	// GET REAL DATA
 
 	const supabase = await createAppServerClient()

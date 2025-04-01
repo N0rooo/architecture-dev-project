@@ -1,7 +1,7 @@
 import { getUsersService } from "@/services/users/getUserService"
 import { createAppServerClient } from "@/supabase/server"
+import { User } from "@/types/types"
 import { faker } from "@faker-js/faker"
-import { User } from "@/lib/schema"
 import "@testing-library/jest-dom"
 
 // Properly mock the Supabase client with a complete method chain
