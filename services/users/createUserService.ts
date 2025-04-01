@@ -12,7 +12,9 @@ export const createUserService = async ({user}: {user: Omit<User, 'id' | 'create
     address: user.address,
     phone: user.phone,
     company: user.company,
-  }); 
+  })
+  .select()
+  .single(); 
   if (error) {
     return {
       data: null,

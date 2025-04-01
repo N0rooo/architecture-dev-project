@@ -10,12 +10,36 @@ jest.mock('../../supabase/server', () => ({
 
 describe('createUserService', () => {
   let mockSupabase: Partial<SupabaseClient>;
+  let mockSelect: jest.Mock;
+  let mockSingle: jest.Mock;
   let mockInsert: jest.Mock;
+
+  const mockUser = {
+    email: faker.internet.email(),
+    name: faker.person.fullName(),
+    avatar: faker.image.avatar(),
+    address: faker.location.streetAddress(),
+    phone: faker.phone.number(),
+    company: faker.company.name(),
+  };
+
+  const mockReturnData = { 
+    id: faker.string.uuid(),
+    email: faker.internet.email(),
+    name: faker.person.fullName(),
+    avatar: faker.image.avatar(),
+    address: faker.location.streetAddress(),
+    phone: faker.phone.number(),
+    company: faker.company.name(),
+    created_at: faker.date.recent().toISOString(),
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
     
-    mockInsert = jest.fn();
+    mockSingle = jest.fn();
+    mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
+    mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
     
     mockSupabase = {
       from: jest.fn().mockReturnValue({
@@ -27,25 +51,10 @@ describe('createUserService', () => {
   });
 
   test('should successfully create a user', async () => {
-    // Mock data to be returned from Supabase
-    const mockReturnData = [{ id: 1, email: 'test@example.com' }];
-    mockInsert.mockResolvedValue({ data: mockReturnData, error: null });
+    mockSingle.mockResolvedValue({ data: mockReturnData, error: null });
 
-    // Create mock user data
-    const mockUser = {
-      email: faker.internet.email(),
-      name: faker.person.fullName(),
-      avatar: faker.image.avatar(),
-      address: faker.location.streetAddress(),
-      phone: faker.phone.number(),
-      company: faker.company.name(),
-
-    };
-
-    // Call the service
     const result = await createUserService({ user: mockUser });
 
-    // Assertions
     expect(createAppServerClient).toHaveBeenCalledTimes(1);
     expect(mockSupabase.from).toHaveBeenCalledWith('users');
     expect(mockInsert).toHaveBeenCalledWith({
@@ -56,6 +65,8 @@ describe('createUserService', () => {
       phone: mockUser.phone,
       company: mockUser.company,
     });
+    expect(mockSelect).toHaveBeenCalled();
+    expect(mockSingle).toHaveBeenCalled();
     expect(result).toEqual({
       data: mockReturnData,
       error: null,
@@ -63,23 +74,11 @@ describe('createUserService', () => {
   });
 
   test('should handle errors from Supabase', async () => {
-    const mockError = { message: 'Database error', code: 'ERROR_CODE' };
-    mockInsert.mockResolvedValue({ data: null, error: mockError });
+    const mockError = new Error('Database error');
+    mockSingle.mockResolvedValue({ data: null, error: mockError });
 
-    // Create mock user data
-    const mockUser = {
-      email: faker.internet.email(),
-      name: faker.person.fullName(),
-      avatar: faker.image.avatar(),
-      address: faker.location.streetAddress(),
-      phone: faker.phone.number(),
-      company: faker.company.name(),
-    };
-
-    // Call the service
     const result = await createUserService({ user: mockUser });
 
-    // Assertions
     expect(createAppServerClient).toHaveBeenCalledTimes(1);
     expect(mockSupabase.from).toHaveBeenCalledWith('users');
     expect(mockInsert).toHaveBeenCalledWith({
@@ -90,6 +89,8 @@ describe('createUserService', () => {
       phone: mockUser.phone,
       company: mockUser.company,
     });
+    expect(mockSelect).toHaveBeenCalled();
+    expect(mockSingle).toHaveBeenCalled();
     expect(result).toEqual({
       data: null,
       error: mockError,
