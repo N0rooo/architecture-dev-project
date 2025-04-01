@@ -2,6 +2,9 @@ import { createServerClient } from "@supabase/ssr"
 import { NextRequest, NextResponse } from "next/server"
 
 export async function updateSession(request: NextRequest) {
+
+	console.log("middleware")
+
 	let supabaseResponse = NextResponse.next({
 		request,
 	})
@@ -22,7 +25,26 @@ export async function updateSession(request: NextRequest) {
 	})
 
 	// refreshing the auth token
-	await supabase.auth.getUser()
+	const { data: { user } } = await supabase.auth.getUser()
+
+
+
+	
+
+	const authRoutes = ["/login", "/signup"];
+	const protectedRoutes = ["/account", "/"];
+
+	const isProtectedRoute = protectedRoutes.includes(request.nextUrl.pathname);
+	const isAuthRoute = authRoutes.includes(request.nextUrl.pathname);
+
+	if (isProtectedRoute && !user) {
+		return NextResponse.redirect(new URL("/login", request.url));
+	}
+
+	if (isAuthRoute && user) {
+		return NextResponse.redirect(new URL("/", request.url));
+	}
+
 
 	return supabaseResponse
 }
