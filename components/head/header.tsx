@@ -37,26 +37,24 @@ export function Header({ user }: { user: User | null }) {
   };
 
   return (
-    <header className='fixed top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-      <div className=' flex h-16 items-center justify-between px-10'>
-        <div className='flex items-center gap-2'>
-          <Link href='/' className='flex items-center '>
-            <span className='text-xl font-bold'>YourBrand</span>
+    <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 fixed top-0 z-50 w-full border-b backdrop-blur">
+      <div className="flex h-16 items-center justify-between px-10">
+        <div className="flex items-center gap-2">
+          <Link className="flex items-center" href="/">
+            <span className="text-xl font-bold">Orluck</span>
           </Link>
         </div>
 
         {/* Desktop navigation */}
 
-        <nav className='hidden md:flex items-center gap-6'>
+        <nav className="hidden items-center gap-6 md:flex">
           {navigation.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                'text-sm font-medium transition-colors hover:text-primary',
-                pathname === item.href
-                  ? 'text-primary'
-                  : 'text-muted-foreground'
+                'hover:text-primary text-sm font-medium transition-colors',
+                pathname === item.href ? 'text-primary' : 'text-muted-foreground',
               )}
             >
               {item.name}
@@ -64,20 +62,18 @@ export function Header({ user }: { user: User | null }) {
           ))}
         </nav>
 
-        <div className='ml-3 hidden md:flex items-center gap-2'>
+        <div className="ml-3 hidden items-center gap-2 md:flex">
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger>
                 <Avatar>
-                  <AvatarFallback>
-                    {getInitials(user?.email || '')}
-                  </AvatarFallback>
+                  <AvatarFallback>{getInitials(user?.email || '')}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align='end'>
+              <DropdownMenuContent align="end">
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <Link href='/account'>
+                <Link href="/account">
                   <DropdownMenuItem>
                     <CircleUserRound />
                     <span>Profile</span>
@@ -91,11 +87,11 @@ export function Header({ user }: { user: User | null }) {
             </DropdownMenu>
           ) : (
             <>
-              <Button variant='outline' asChild>
-                <Link href='/login'>Sign In</Link>
+              <Button variant="outline" asChild>
+                <Link href="/login">Sign In</Link>
               </Button>
               <Button asChild>
-                <Link href='/login'>Sign Up</Link>
+                <Link href="/login">Sign Up</Link>
               </Button>
             </>
           )}
@@ -104,49 +100,45 @@ export function Header({ user }: { user: User | null }) {
         {/* Mobile navigation */}
 
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-          <SheetTrigger asChild className='md:hidden'>
-            <Button variant='ghost' size='icon' className='md:hidden'>
-              <Menu className='h-5 w-5' />
-              <span className='sr-only'>Toggle menu</span>
+          <SheetTrigger className="md:hidden" asChild>
+            <Button className="md:hidden" size="icon" variant="ghost">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side='right' className='w-[240px] sm:w-[300px] p-6'>
-            <SheetTitle className='flex items-center justify-between'>
-              <span className='text-lg font-bold'>YourBrand</span>
+          <SheetContent className="w-[240px] p-6 sm:w-[300px]" side="right">
+            <SheetTitle className="flex items-center justify-between">
+              <span className="text-lg font-bold">YourBrand</span>
             </SheetTitle>
-            <div className='flex flex-col gap-4 py-4'>
+            <div className="flex flex-col gap-4 py-4">
               {navigation.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    'text-sm font-medium transition-colors hover:text-primary',
-                    pathname === item.href
-                      ? 'text-primary'
-                      : 'text-muted-foreground'
+                    'hover:text-primary text-sm font-medium transition-colors',
+                    pathname === item.href ? 'text-primary' : 'text-muted-foreground',
                   )}
                   onClick={() => setIsOpen(false)}
                 >
                   {item.name}
                 </Link>
               ))}
-              <div className='flex flex-col gap-2 mt-4 pt-4 border-t'>
+              <div className="mt-4 flex flex-col gap-2 border-t pt-4">
                 {user ? (
                   <>
-                    <p className='text-sm text-muted-foreground'>
-                      {user.email}
-                    </p>
+                    <p className="text-muted-foreground text-sm">{user.email}</p>
                     <LogoutButton />
                   </>
                 ) : (
                   <>
-                    <Button variant='outline' asChild>
-                      <Link href='/login' onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" asChild>
+                      <Link href="/login" onClick={() => setIsOpen(false)}>
                         Sign In
                       </Link>
                     </Button>
                     <Button asChild>
-                      <Link href='/login' onClick={() => setIsOpen(false)}>
+                      <Link href="/login" onClick={() => setIsOpen(false)}>
                         Sign Up
                       </Link>
                     </Button>

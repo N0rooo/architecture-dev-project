@@ -23,7 +23,7 @@ describe('createUserService', () => {
     company: faker.company.name(),
   };
 
-  const mockReturnData = { 
+  const mockReturnData = {
     id: faker.string.uuid(),
     email: faker.internet.email(),
     name: faker.person.fullName(),
@@ -36,17 +36,17 @@ describe('createUserService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     mockSingle = jest.fn();
     mockSelect = jest.fn().mockReturnValue({ single: mockSingle });
     mockInsert = jest.fn().mockReturnValue({ select: mockSelect });
-    
+
     mockSupabase = {
       from: jest.fn().mockReturnValue({
         insert: mockInsert,
       }),
     };
-    
+
     (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
   });
 

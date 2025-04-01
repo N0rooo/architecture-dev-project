@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { cn } from "@/lib/utils";
-import { motion, useAnimation } from "motion/react";
-import React, { useEffect, useRef, useState } from "react";
+import { cn } from '@/lib/utils';
+import { motion, useAnimation } from 'motion/react';
+import React, { useEffect, useRef, useState } from 'react';
 
 interface ScratchToRevealProps {
   children: React.ReactNode;
@@ -21,7 +21,7 @@ export const ScratchToReveal: React.FC<ScratchToRevealProps> = ({
   onComplete,
   children,
   className,
-  gradientColors = ["#A97CF8", "#F38CB8", "#FDCC92"],
+  gradientColors = ['#A97CF8', '#F38CB8', '#FDCC92'],
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isScratching, setIsScratching] = useState(false);
@@ -32,16 +32,11 @@ export const ScratchToReveal: React.FC<ScratchToRevealProps> = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
+    const ctx = canvas?.getContext('2d');
     if (canvas && ctx) {
-      ctx.fillStyle = "#ccc";
+      ctx.fillStyle = '#ccc';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      const gradient = ctx.createLinearGradient(
-        0,
-        0,
-        canvas.width,
-        canvas.height,
-      );
+      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
       gradient.addColorStop(0, gradientColors[0]);
       gradient.addColorStop(0.5, gradientColors[1]);
       gradient.addColorStop(1, gradientColors[2]);
@@ -73,22 +68,22 @@ export const ScratchToReveal: React.FC<ScratchToRevealProps> = ({
       checkCompletion();
     };
 
-    document.addEventListener("mousedown", handleDocumentMouseMove);
-    document.addEventListener("mousemove", handleDocumentMouseMove);
-    document.addEventListener("touchstart", handleDocumentTouchMove);
-    document.addEventListener("touchmove", handleDocumentTouchMove);
-    document.addEventListener("mouseup", handleDocumentMouseUp);
-    document.addEventListener("touchend", handleDocumentTouchEnd);
-    document.addEventListener("touchcancel", handleDocumentTouchEnd);
+    document.addEventListener('mousedown', handleDocumentMouseMove);
+    document.addEventListener('mousemove', handleDocumentMouseMove);
+    document.addEventListener('touchstart', handleDocumentTouchMove);
+    document.addEventListener('touchmove', handleDocumentTouchMove);
+    document.addEventListener('mouseup', handleDocumentMouseUp);
+    document.addEventListener('touchend', handleDocumentTouchEnd);
+    document.addEventListener('touchcancel', handleDocumentTouchEnd);
 
     return () => {
-      document.removeEventListener("mousedown", handleDocumentMouseMove);
-      document.removeEventListener("mousemove", handleDocumentMouseMove);
-      document.removeEventListener("touchstart", handleDocumentTouchMove);
-      document.removeEventListener("touchmove", handleDocumentTouchMove);
-      document.removeEventListener("mouseup", handleDocumentMouseUp);
-      document.removeEventListener("touchend", handleDocumentTouchEnd);
-      document.removeEventListener("touchcancel", handleDocumentTouchEnd);
+      document.removeEventListener('mousedown', handleDocumentMouseMove);
+      document.removeEventListener('mousemove', handleDocumentMouseMove);
+      document.removeEventListener('touchstart', handleDocumentTouchMove);
+      document.removeEventListener('touchmove', handleDocumentTouchMove);
+      document.removeEventListener('mouseup', handleDocumentMouseUp);
+      document.removeEventListener('touchend', handleDocumentTouchEnd);
+      document.removeEventListener('touchcancel', handleDocumentTouchEnd);
     };
   }, [isScratching]);
 
@@ -98,12 +93,12 @@ export const ScratchToReveal: React.FC<ScratchToRevealProps> = ({
 
   const scratch = (clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
+    const ctx = canvas?.getContext('2d');
     if (canvas && ctx) {
       const rect = canvas.getBoundingClientRect();
       const x = clientX - rect.left + 16;
       const y = clientY - rect.top + 16;
-      ctx.globalCompositeOperation = "destination-out";
+      ctx.globalCompositeOperation = 'destination-out';
       ctx.beginPath();
       ctx.arc(x, y, 30, 0, Math.PI * 2);
       ctx.fill();
@@ -127,7 +122,7 @@ export const ScratchToReveal: React.FC<ScratchToRevealProps> = ({
     if (isComplete) return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
+    const ctx = canvas?.getContext('2d');
     if (canvas && ctx) {
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       const pixels = imageData.data;
@@ -150,21 +145,22 @@ export const ScratchToReveal: React.FC<ScratchToRevealProps> = ({
 
   return (
     <motion.div
-      className={cn("relative select-none", className)}
+      animate={controls}
+      className={cn('relative select-none', className)}
       style={{
         width,
         height,
-        cursor: isComplete ? "auto" : 
-          "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxNSIgc3R5bGU9ImZpbGw6I2ZmZjtzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MXB4OyIgLz4KPC9zdmc+'), auto",
+        cursor: isComplete
+          ? 'auto'
+          : "url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgdmlld0JveD0iMCAwIDMyIDMyIj4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIxNSIgc3R5bGU9ImZpbGw6I2ZmZjtzdHJva2U6IzAwMDtzdHJva2Utd2lkdGg6MXB4OyIgLz4KPC9zdmc+'), auto",
       }}
-      animate={controls}
     >
       {isOverlayReady && children}
       <canvas
         ref={canvasRef}
-        width={width}
+        className={`absolute top-0 left-0 ${isComplete ? 'hidden' : ''}`}
         height={height}
-        className={`absolute left-0 top-0 ${isComplete ? 'hidden' : ''}`}
+        width={width}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
       ></canvas>
