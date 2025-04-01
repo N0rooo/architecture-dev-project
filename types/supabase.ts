@@ -1,4 +1,5 @@
 
+
 export type Database = {
   public: {
     Tables: {
@@ -37,6 +38,7 @@ export type Database = {
           avatar_url: string | null
           full_name: string | null
           id: string
+          last_opened_cashprize_at: string | null
           updated_at: string | null
           username: string | null
           website: string | null
@@ -45,6 +47,7 @@ export type Database = {
           avatar_url?: string | null
           full_name?: string | null
           id: string
+          last_opened_cashprize_at?: string | null
           updated_at?: string | null
           username?: string | null
           website?: string | null
@@ -53,11 +56,51 @@ export type Database = {
           avatar_url?: string | null
           full_name?: string | null
           id?: string
+          last_opened_cashprize_at?: string | null
           updated_at?: string | null
           username?: string | null
           website?: string | null
         }
         Relationships: []
+      }
+      user_prize_attempts: {
+        Row: {
+          attempted_at: string | null
+          id: number
+          prize_id: number | null
+          success: boolean
+          user_id: string
+        }
+        Insert: {
+          attempted_at?: string | null
+          id?: number
+          prize_id?: number | null
+          success?: boolean
+          user_id: string
+        }
+        Update: {
+          attempted_at?: string | null
+          id?: number
+          prize_id?: number | null
+          success?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_user_prize_profile"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_prize_attempts_prize_id_fkey"
+            columns: ["prize_id"]
+            isOneToOne: false
+            referencedRelation: "cashprize"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
@@ -97,6 +140,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_user_generate_prize: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: boolean
+      }
+      generate_user_prize: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          can_generate: boolean
+          time_remaining: string
+          prize_id: number
+          prize_name: string
+          prize_amount: number
+        }[]
+      }
+      get_next_prize_time: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          can_generate_now: boolean
+          next_available_at: string
+          time_remaining: string
+        }[]
+      }
       select_random_prize: {
         Args: Record<PropertyKey, never>
         Returns: {
