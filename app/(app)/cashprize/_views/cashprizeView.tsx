@@ -35,7 +35,6 @@ export default function CashprizeView() {
 
       const data = await res.json();
       const { success, prize, timeRemaining } = data;
-      console.log({ success, prize, timeRemaining });
       setPrize(prize);
 
       if (timeRemaining) {

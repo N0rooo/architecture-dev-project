@@ -25,7 +25,7 @@ import {
   TrendingUp,
   Trophy,
   User,
-  Wallet
+  Wallet,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
@@ -40,26 +40,23 @@ export default function AccountPage() {
 
   const { countdown, formatTime, startCountdown } = useCountdown();
 
-  // Informations utilisateur
   const user = {
     name: 'Thomas Dupont',
     email: 'thomas.dupont@exemple.fr',
-    avatar: '/avatars/user-01.png',
+    avatar: '',
     memberSince: '15 janvier 2025',
     level: 7,
     pointsBalance: 1250,
     vip: true,
   };
 
-  // Statistiques utilisateur
-  const [userStats, setUserStats] = useState({
+  const [userStats,] = useState({
     totalWon: 2350,
     scratched: 48,
     biggestWin: 500,
     currentStreak: 7,
   });
 
-  // Historique des gains
   const prizeHistory = [
     { date: '30/03/2025', amount: 75, name: 'Prix Argent' },
     { date: '29/03/2025', amount: 120, name: 'Prix Or' },
@@ -83,7 +80,6 @@ export default function AccountPage() {
 
       const data = await res.json();
       const { success, prize, timeRemaining } = data;
-      console.log({ success, prize, timeRemaining });
       setPrize(prize);
 
       if (timeRemaining) {

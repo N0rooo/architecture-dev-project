@@ -7,13 +7,9 @@ export const getCashPrizeService = async (): Promise<{
   prize: Omit<CashPrize, 'created_at' | 'updated_at' | 'is_active' | 'probability'> | null;
   error: Error | null;
 }> => {
-  // GET REAL DATA
-
-  console.log('getCashPrizeService');
   const supabase = await createAppServerClient();
   const { user } = (await supabase.auth.getUser()).data;
   if (!user) {
-    console.log('User not found');
     return {
       success: false,
       timeRemaining: '',
@@ -22,12 +18,10 @@ export const getCashPrizeService = async (): Promise<{
     };
   }
 
-  console.log('Generating user prize');
   const { data, error } = await supabase
     .rpc('generate_user_prize', { p_user_id: user.id })
     .single();
 
-  console.log('data', data);
   if (error) {
     console.error('Error generating prize:', error);
     return { success: false, timeRemaining: '', prize: null, error: error };

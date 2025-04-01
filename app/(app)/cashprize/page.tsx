@@ -1,5 +1,3 @@
-import { ScratchToReveal } from '@/components/magicui/scratch-to-reveal';
-import React from 'react';
 import CashprizeView from './_views/cashprizeView';
 
 export default function page() {

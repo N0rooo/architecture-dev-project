@@ -2,8 +2,6 @@ import { createServerClient } from '@supabase/ssr';
 import { NextRequest, NextResponse } from 'next/server';
 
 export async function updateSession(request: NextRequest) {
-  console.log('middleware');
-
   let supabaseResponse = NextResponse.next({
     request,
   });
