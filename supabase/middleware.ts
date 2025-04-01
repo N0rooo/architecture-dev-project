@@ -26,19 +26,22 @@ export async function updateSession(request: NextRequest) {
 
 	// refreshing the auth token
 	const { data: { user } } = await supabase.auth.getUser()
-
-
-
 	
-
 	const authRoutes = ["/login", "/signup"];
 	const protectedRoutes = ["/account", "/"];
+	const protectedApiRoutes = ["/api/cashprize"];
 
 	const isProtectedRoute = protectedRoutes.includes(request.nextUrl.pathname);
 	const isAuthRoute = authRoutes.includes(request.nextUrl.pathname);
 
 	if (isProtectedRoute && !user) {
 		return NextResponse.redirect(new URL("/login", request.url));
+	}
+
+	const isProtectedApiRoute = protectedApiRoutes.includes(request.nextUrl.pathname);
+
+	if (isProtectedApiRoute && !user) {
+		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
 	if (isAuthRoute && user) {

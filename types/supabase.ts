@@ -1,6 +1,64 @@
+
 export type Database = {
   public: {
     Tables: {
+      cashprize: {
+        Row: {
+          created_at: string | null
+          id: number
+          is_active: boolean | null
+          prize_amount: number
+          prize_name: string
+          probability: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: number
+          is_active?: boolean | null
+          prize_amount: number
+          prize_name: string
+          probability: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: number
+          is_active?: boolean | null
+          prize_amount?: number
+          prize_name?: string
+          probability?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          full_name: string | null
+          id: string
+          updated_at: string | null
+          username: string | null
+          website: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string | null
+          username?: string | null
+          website?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string | null
+          username?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           address: string
@@ -39,7 +97,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      select_random_prize: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          id: number
+          prize_name: string
+          prize_amount: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

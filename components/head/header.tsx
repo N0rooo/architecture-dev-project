@@ -14,6 +14,7 @@ import LogoutButton from "./logoutButton"
 const navigation = [
   { name: "Home", href: "/" },
   { name: "Account", href: "/account" },
+  {name : "Cashprize", href: "/cashprize"}
 ]
 
 export function Header({ user }: { user: User | null }) {
@@ -22,14 +23,15 @@ export function Header({ user }: { user: User | null }) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className=" flex h-16 items-center justify-between px-10">
         <div className="flex items-center gap-2">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center ">
             <span className="text-xl font-bold">YourBrand</span>
           </Link>
         </div>
 
         {/* Desktop navigation */}
+        
         <nav className="hidden md:flex items-center gap-6">
           {navigation.map((item) => (
             <Link
@@ -66,6 +68,7 @@ export function Header({ user }: { user: User | null }) {
         </nav>
 
         {/* Mobile navigation */}
+        
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetTrigger asChild className="md:hidden">
             <Button variant="ghost" size="icon" className="md:hidden">
