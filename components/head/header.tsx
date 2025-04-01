@@ -23,7 +23,7 @@ import LogoutButton from './logoutButton';
 
 const navigation = [
   { name: 'Home', href: '/' },
-  { name: 'Cashprize', href: '/cashprize' },
+  { name: 'Free Ticket', href: '/cashprize' },
 ];
 
 export function Header({ user }: { user: User | null }) {
@@ -77,7 +77,7 @@ export function Header({ user }: { user: User | null }) {
               <DropdownMenuContent align='end'>
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <Link href='/profile'>
+                <Link href='/account'>
                   <DropdownMenuItem>
                     <CircleUserRound />
                     <span>Profile</span>

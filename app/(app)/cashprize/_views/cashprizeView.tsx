@@ -13,6 +13,7 @@ export default function CashprizeView() {
   const [loading, setLoading] = useState(false)
   const [revealed, setRevealed] = useState(false)
   const [countdown, setCountdown] = useState<number | null>(null)
+  const [isPageLoaded, setIsPageLoaded] = useState(false)
 
   useEffect(() => {
     const storedCountdownData = localStorage.getItem('prizeCountdown')
@@ -64,6 +65,10 @@ export default function CashprizeView() {
 
   // Modified countdown timer effect
   useEffect(() => {
+    if (!isPageLoaded) {
+      setIsPageLoaded(true)
+      return
+    }
     if (countdown === null || countdown <= 0) {
       if (countdown === 0) {
         localStorage.removeItem('prizeCountdown')
@@ -116,6 +121,7 @@ export default function CashprizeView() {
 
 
   return (
+    
     <div className="flex flex-col items-center gap-6 p-4 mt-11 ">
       {countdown !== null && countdown > 0 && (
         <div className="flex items-center gap-2 text-amber-600 bg-amber-50 px-4 py-2 rounded-lg border border-amber-200">
@@ -124,7 +130,7 @@ export default function CashprizeView() {
         </div>
       )}
 
-      {!prize && !countdown && (
+      {!prize && !countdown && isPageLoaded && (
         <Button
           onClick={generatePrize}
           disabled={loading || (countdown !== null && countdown > 0)}
