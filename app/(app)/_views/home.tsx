@@ -1,208 +1,150 @@
-"use client"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { User } from "@/types/types"
-import { RefreshCcw, UserPlus, Users } from "lucide-react"
-import React, { useEffect, useState } from "react"
-
-const initialUser: User = {
-	id: "",
-	name: "",
-	email: "",
-	avatar: "",
-	address: "",
-	phone: "",
-	company: "",
-	created_at: "",
-}
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { cn } from "@/lib/utils";
+import { Clock, Coins, Gift, HandCoins } from "lucide-react";
 
 export default function HomeView() {
-	const [users, setUsers] = useState<User[]>([])
-	const [isLoading, setIsLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
-	const [isDialogOpen, setIsDialogOpen] = useState(false)
-	const [newUser, setNewUser] = useState<User>(initialUser)
+  const timeToNextTicket = 42;
+  const userPoints = 350;
 
-	const handleGetUsers = async () => {
-		try {
-			setIsLoading(true)
-			setError(null)
-			const res = await fetch("/api/users")
+  const tickets = [
+    { 
+      name: 'Basique', 
+      price: 0,
+      color: 'bg-gray-100', 
+      textColor: 'text-gray-700',
+      minReward: 20,
+      maxReward: 100,
+      isTimeLimited: true,
+      available: false
+    },
+    { 
+      name: 'Standard', 
+      price: 100, 
+      color: 'bg-blue-100', 
+      textColor: 'text-blue-700',
+      minReward: 40,
+      maxReward: 200,
+      isTimeLimited: false
+    },
+    { 
+      name: 'Premium', 
+      price: 200, 
+      color: 'bg-purple-100', 
+      textColor: 'text-purple-700',
+      minReward: 80,
+      maxReward: 400,
+      isTimeLimited: false
+    },
+    { 
+      name: 'Élite', 
+      price: 350, 
+      color: 'bg-amber-100', 
+      textColor: 'text-amber-700',
+      minReward: 150,
+      maxReward: 750,
+      isTimeLimited: false
+    },
+    { 
+      name: 'Légendaire', 
+      price: 500, 
+      color: 'bg-rose-100', 
+      textColor: 'text-rose-700',
+      minReward: 200,
+      maxReward: 1500,
+      isTimeLimited: false
+    },
+  ];
 
-			if (!res.ok) {
-				throw new Error(`Failed to fetch users: ${res.status}`)
-			}
+  return (
+    <div className="container py-10 max-w-4xl mx-auto mt-11">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Tickets à Gratter</h1>
+        <div className="flex items-center gap-2 bg-slate-100 p-3 rounded-lg">
+          <HandCoins className="text-yellow-500" />
+          <span className="font-semibold">{userPoints} points</span>
+        </div>
+      </div>
+      
+      {/* Section ticket gratuit */}
+      <div className="mb-8 bg-slate-50 p-6 rounded-xl">
+        <div className="flex justify-between items-center mb-2">
+          <h2 className="text-xl font-semibold flex items-center gap-2">
+            <Gift className="text-green-500" />
+            Ticket gratuit
+          </h2>
+          <Badge variant="outline" className="flex items-center gap-1">
+            <Clock size={14} />
+            {Math.floor(timeToNextTicket / 60)}h {timeToNextTicket % 60}min
+          </Badge>
+        </div>
+        <p className="text-sm text-slate-600 mb-3">Vous avez droit à un ticket basique gratuit toutes les heures</p>
+        <Progress value={((60 - timeToNextTicket) / 60) * 100} className="h-2 mb-3" />
+        <Button 
+          disabled={timeToNextTicket > 0} 
+          className="w-full mt-2"
+          variant={timeToNextTicket > 0 ? "outline" : "default"}
+        >
+          {timeToNextTicket > 0 ? "Disponible bientôt" : "Récupérer ticket gratuit"}
+        </Button>
+      </div>
 
-			const data = await res.json()
-			setUsers(data)
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to fetch users")
-		} finally {
-			setIsLoading(false)
-		}
-	}
+      <h2 className="text-xl font-semibold mb-4">Tickets Premium</h2>
+      <p className="text-sm text-slate-600 mb-6">Utilisez vos points pour acheter des tickets avec de meilleures récompenses</p>
 
-	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const { name, value } = e.target
-		setNewUser((prev) => {
-			return {
-				...prev,
-				[name]: value,
-			}
-		})
-	}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+        {tickets.slice(1).map((ticket, index) => (
+          <Card key={index} className={cn("hover:shadow-lg transition-all min-w-72 border-0", ticket.color)}>
+            <CardHeader className="gap-0">
+              <CardTitle className={cn("text-xl", ticket.textColor)}>{ticket.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex gap-2 justify-center items-center mb-3">
+                <div className={cn("text-2xl font-bold flex items-center gap-2", ticket.textColor)}>
+                  <Coins size={24} />
+                  {ticket.price} points
+                </div>
+              </div>
+              <p className="text-center text-sm">
+                Gagnez entre {ticket.minReward} et {ticket.maxReward} points
+              </p>
+            </CardContent>
+            <CardFooter className="flex justify-center">
+              <Button 
+                variant={userPoints >= ticket.price ? "default" : "outline"} 
+                disabled={userPoints < ticket.price}
+                className={cn(
+                  "w-full text-sm font-semibold",
+                  userPoints >= ticket.price ? "text-white cursor-pointer" : "text-gray-500"
+                )}
+              >
+                {userPoints >= ticket.price ? "Acheter et gratter" : "Points insuffisants"}
+              </Button>
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
 
-	const handleCreateUser = async () => {
-		setIsLoading(true)
-		try {
-			const res = await fetch("/api/users", {
-				method: "POST",
-				body: JSON.stringify({ user: newUser }),
-			})
-
-			if (!res.ok) {
-				throw new Error(`Failed to create user: ${res.status}`)
-			}
-
-			const data = await res.json()
-			console.log("Created user:", data)
-			setUsers([...users, data])
-			setIsDialogOpen(false)
-		} catch (err) {
-			console.error(err)
-		} finally {
-			setIsLoading(false)
-		}
-	}
-
-	const resetUsers = () => {
-		setUsers([])
-		setError(null)
-	}
-
-	useEffect(() => {
-		handleGetUsers()
-	}, [])
-
-	return (
-		<div className="container py-10 max-w-4xl mx-auto">
-			<Card>
-				<CardHeader className="border-b">
-					<CardTitle className="text-2xl flex items-center gap-2">
-						<Users className="h-5 w-5" />
-						User Management
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="p-6">
-					<div className="flex gap-4 mb-6">
-						<Button onClick={handleGetUsers} disabled={isLoading} className="gap-2">
-							{isLoading ? "Loading..." : "Get Users"}
-						</Button>
-						<Button onClick={resetUsers} variant="outline" className="gap-2">
-							<RefreshCcw className="h-4 w-4" />
-							Set to null
-						</Button>
-					</div>
-
-					<Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-						<DialogTrigger asChild>
-							<Button className="gap-2 mb-6">
-								<UserPlus className="h-4 w-4" />
-								Create User
-							</Button>
-						</DialogTrigger>
-						<DialogContent className="sm:max-w-[425px]">
-							<DialogHeader>
-								<DialogTitle>Create New User</DialogTitle>
-							</DialogHeader>
-							<div className="grid gap-4 py-4">
-								<div className="grid gap-2">
-									<Label htmlFor="name">Name (required)</Label>
-									<Input id="name" name="name" value={newUser.name} onChange={handleInputChange} placeholder="John Doe" />
-								</div>
-								<div className="grid gap-2">
-									<Label htmlFor="email">Email (required)</Label>
-									<Input id="email" name="email" type="email" value={newUser.email} onChange={handleInputChange} placeholder="john@example.com" />
-								</div>
-								<div className="grid gap-2">
-									<Label htmlFor="avatar">Avatar URL</Label>
-									<Input id="avatar" name="avatar" value={newUser.avatar} onChange={handleInputChange} placeholder="https://example.com/avatar.jpg" />
-								</div>
-								<div className="grid gap-2">
-									<Label htmlFor="address">Address</Label>
-									<Input id="address" name="address" value={newUser.address} onChange={handleInputChange} placeholder="123 Main St, City, Country" />
-								</div>
-								<div className="grid gap-2">
-									<Label htmlFor="phone">Phone</Label>
-									<Input id="phone" name="phone" value={newUser.phone} onChange={handleInputChange} placeholder="+1 234 567 8900" />
-								</div>
-								<div className="grid gap-2">
-									<Label htmlFor="company">Company</Label>
-									<Input id="company" name="company" value={newUser.company} onChange={handleInputChange} placeholder="Acme Inc." />
-								</div>
-							</div>
-							<div className="flex justify-end gap-3">
-								<Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-									Cancel
-								</Button>
-								<Button onClick={handleCreateUser} disabled={isLoading || !newUser.name || !newUser.email}>
-									{isLoading ? "Creating..." : "Create User"}
-								</Button>
-							</div>
-						</DialogContent>
-					</Dialog>
-
-					{error && <div className="bg-destructive/10 text-destructive p-3 rounded-md mb-4">{error}</div>}
-
-					{users.length > 0 ? (
-						<div className="space-y-4">
-							<h2 className="text-lg font-medium">Users ({users.length})</h2>
-							<div className="border rounded-md overflow-hidden">
-								<div className="overflow-x-auto">
-									<table className="w-full whitespace-nowrap">
-										<thead className="bg-muted">
-											<tr>
-												{Object.keys(users[0]).map((key) => (
-													<th key={key} className="text-left p-3 font-medium">
-														{key.charAt(0).toUpperCase() + key.slice(1)}
-													</th>
-												))}
-											</tr>
-										</thead>
-										<tbody>
-											{users.map((user, index) => (
-												<tr key={index} className="border-t">
-													{Object.values(user).map((value, i) => (
-														<td key={i} className="p-3">
-															{typeof value === "object" && value !== null ? (
-																<div className="max-w-xs overflow-hidden text-ellipsis">
-																	<details className="cursor-pointer">
-																		<summary className="text-sm text-primary">View Object</summary>
-																		<pre className="mt-2 p-2 bg-muted rounded-md text-xs overflow-x-auto max-h-40">{JSON.stringify(value, null, 2)}</pre>
-																	</details>
-																</div>
-															) : (
-																String(value)
-															)}
-														</td>
-													))}
-												</tr>
-											))}
-										</tbody>
-									</table>
-								</div>
-							</div>
-						</div>
-					) : isLoading ? (
-						<div className="text-center py-10 text-muted-foreground">Loading...</div>
-					) : (
-						<div className="text-center py-10 text-muted-foreground">No users to display. Click "Get Users" to fetch data.</div>
-					)}
-				</CardContent>
-			</Card>
-		</div>
-	)
+      {/* Section d'explication */}
+      <div className="mt-10 bg-slate-50 p-6 rounded-xl">
+        <h2 className="text-xl font-semibold mb-4">Comment ça marche</h2>
+        <ul className="space-y-2">
+          <li className="flex items-start gap-2">
+            <span className="text-green-500 font-bold">1.</span> Récupérez votre ticket basique gratuit chaque heure
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-green-500 font-bold">2.</span> Grattez votre ticket pour gagner des points
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-green-500 font-bold">3.</span> Utilisez vos points pour acheter des tickets premium
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="text-green-500 font-bold">4.</span> Les tickets plus chers offrent de meilleures récompenses
+          </li>
+        </ul>
+      </div>
+    </div>
+  );
 }
