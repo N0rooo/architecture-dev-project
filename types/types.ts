@@ -8,4 +8,5 @@ export type LoginFormValues = z.infer<typeof loginSchema>;
 export type SignupFormValues = z.infer<typeof signupSchema>;
 
 // SUPABASE TYPES
-export type CashPrize = Database['public']['Tables']['cashprize']['Row'];
+export type Prize = Database['public']['Tables']['prize']['Row'];
+export type Profile = Database['public']['Tables']['profiles']['Row'];

@@ -23,7 +23,7 @@ import LogoutButton from './logoutButton';
 
 const navigation = [
   { name: 'Home', href: '/' },
-  { name: 'Free Ticket', href: '/cashprize' },
+  { name: 'Free Ticket', href: '/free-prize' },
 ];
 
 export function Header({ user }: { user: User | null }) {

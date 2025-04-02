@@ -1,87 +1,100 @@
 import { getUsersService } from '@/services/users/getUserService';
 import { createAppServerClient } from '@/supabase/server';
-import { User } from '@/types/types';
-import { faker } from '@faker-js/faker';
-import '@testing-library/jest-dom';
 
-// Properly mock the Supabase client with a complete method chain
+// Mock the Supabase client
 jest.mock('../../supabase/server', () => ({
   createAppServerClient: jest.fn(),
 }));
 
 describe('getUsersService', () => {
-  // Set up mock return values
-  let mockLimit: jest.Mock;
-  let mockSelect: jest.Mock;
-  let mockFrom: jest.Mock;
-
   beforeEach(() => {
     jest.clearAllMocks();
-    mockLimit = jest.fn();
-    mockSelect = jest.fn().mockReturnValue({
-      limit: mockLimit,
-    });
-    mockFrom = jest.fn().mockReturnValue({
-      select: mockSelect,
-    });
-
-    // Configure createAppServerClient mock with our chain
-    (createAppServerClient as jest.Mock).mockResolvedValue({
-      from: mockFrom,
-    });
-
-    // Set default successful response
-    mockLimit.mockResolvedValue({
-      data: [],
-      error: null,
-    });
   });
 
-  it('should handle successful user fetching', async () => {
-    const limit = 5;
-    const mockUsers: User[] = Array.from({ length: limit }, () => ({
-      id: faker.string.uuid(),
-      name: faker.person.fullName(),
-      email: faker.internet.email(),
-      avatar: faker.image.avatar(),
-      address: faker.location.streetAddress(),
-      phone: faker.phone.number(),
-      company: faker.company.name(),
-      created_at: faker.date.recent().toISOString(),
-    }));
+  it('should return user profile when user is authenticated', async () => {
+    const mockProfile = {
+      id: 'test-user-id',
+      email: 'test@example.com',
+      points: 100,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
 
-    // Set up mock to return our mock data
-    mockLimit.mockResolvedValue({ data: mockUsers, error: null });
+    const mockSupabase = {
+      auth: {
+        getUser: jest.fn().mockResolvedValue({
+          data: { user: { id: 'test-user-id' } },
+        }),
+      },
+      from: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: mockProfile,
+              error: null,
+            }),
+          }),
+        }),
+      }),
+    };
 
-    const result = await getUsersService(limit);
-
-    // Verify the function returns the expected data
-    expect(result.data).toEqual(mockUsers);
-    expect(result.error).toBeNull();
-    expect(result.data).toHaveLength(limit);
-
-    // Verify the correct limit was used
-    expect(mockLimit).toHaveBeenCalledWith(limit);
-  });
-
-  // In your test
-  it('should use the correct select query', async () => {
-    await getUsersService(5);
-    expect(mockFrom).toHaveBeenCalledWith('users');
-    expect(mockSelect).toHaveBeenCalledWith('*');
-    expect(mockLimit).toHaveBeenCalledWith(5);
-  });
-
-  it('should handle errors from Supabase', async () => {
-    const mockError = new Error('Failed to fetch users');
-
-    // Set up mock to return an error
-    mockLimit.mockResolvedValue({ data: null, error: mockError });
+    (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
 
     const result = await getUsersService();
 
-    // Verify the function returns the error
-    expect(result.data).toBeNull();
-    expect(result.error).toEqual(mockError);
+    expect(result).toEqual({
+      data: mockProfile,
+      error: null,
+    });
+    expect(mockSupabase.from).toHaveBeenCalledWith('profiles');
+  });
+
+  it('should return error when user is not authenticated', async () => {
+    const mockSupabase = {
+      auth: {
+        getUser: jest.fn().mockResolvedValue({
+          data: { user: null },
+        }),
+      },
+    };
+
+    (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
+
+    const result = await getUsersService();
+
+    expect(result).toEqual({
+      data: null,
+      error: new Error('Unauthorized: User not found'),
+    });
+  });
+
+  it('should handle database errors', async () => {
+    const mockError = new Error('Database error');
+    const mockSupabase = {
+      auth: {
+        getUser: jest.fn().mockResolvedValue({
+          data: { user: { id: 'test-user-id' } },
+        }),
+      },
+      from: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue({
+            single: jest.fn().mockResolvedValue({
+              data: null,
+              error: mockError,
+            }),
+          }),
+        }),
+      }),
+    };
+
+    (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
+
+    const result = await getUsersService();
+
+    expect(result).toEqual({
+      data: null,
+      error: mockError,
+    });
   });
 });
