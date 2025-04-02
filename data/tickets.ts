@@ -1,4 +1,4 @@
-export const premiumTickets = [
+export const premiumTickets: PremiumTicket[] = [
   {
     id: 1,
     name: 'Argent',
@@ -31,8 +31,17 @@ export const premiumTickets = [
     name: 'Mystère',
     price: 350,
     minReward: 0,
-    maxReward: '???',
     color: 'bg-purple-100',
     textColor: 'text-purple-700',
   },
 ];
+
+export type PremiumTicket = {
+  id: number;
+  name: string;
+  price: number;
+  minReward: number;
+  maxReward?: number;
+  color: string;
+  textColor: string;
+};
