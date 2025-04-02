@@ -40,14 +40,22 @@ export function Header({ user }: { user: User | null }) {
   };
 
   const logout = async () => {
-    const response = await fetch('/api/auth/signout', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    if (response.ok) {
-      router.push('/login');
+    try {
+      const response = await fetch('/api/auth/signout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        router.push('/login');
+      } else {
+        // Handle non-ok response
+        alert('Logout failed. Please try again.');
+      }
+    } catch (error) {
+      // Handle network or other errors
+      alert('An error occurred. Please try again.');
     }
   };
 
