@@ -27,7 +27,7 @@ import {
   Calendar,
   ExternalLink,
   HandCoins,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -74,28 +74,30 @@ export default function AccountPage() {
       {/* En-tête de profil */}
       <div className="mb-8">
         <Card className="bg-white shadow-sm">
-          <CardContent className="flex flex-col sm:flex-row items-center sm:items-center gap-4 p-4">
+          <CardContent className="flex flex-col items-center gap-4 p-4 sm:flex-row sm:items-center">
             <Avatar className="h-16 w-16 border-2 border-purple-200">
               <AvatarImage alt={profile?.full_name ?? ''} src={profile?.avatar_url ?? ''} />
-              <AvatarFallback className="text-xl bg-purple-100 text-purple-700 uppercase">
+              <AvatarFallback className="bg-purple-100 text-xl text-purple-700 uppercase">
                 {profile?.full_name?.charAt(0) ?? user?.email?.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1 text-center sm:text-left">
               <h2 className="text-xl font-bold text-slate-800">
                 {profile?.full_name ?? user?.email}
               </h2>
-              
-              <div className="flex items-center justify-center sm:justify-start gap-1 text-sm text-slate-500 mt-1">
+
+              <div className="mt-1 flex items-center justify-center gap-1 text-sm text-slate-500 sm:justify-start">
                 <User className="h-3 w-3" />
                 <span>@{profile?.username ?? 'utilisateur'}</span>
               </div>
-              
-              <div className="mt-2 flex items-center justify-center sm:justify-start gap-2">
+
+              <div className="mt-2 flex items-center justify-center gap-2 sm:justify-start">
                 <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 text-amber-400" />
-                  <span className="text-xs text-slate-500">Membre depuis: {formatDate(profile?.created_at ?? '').split(' ')[0]}</span>
+                  <span className="text-xs text-slate-500">
+                    Membre depuis: {formatDate(profile?.created_at ?? '').split(' ')[0]}
+                  </span>
                 </div>
               </div>
             </div>
@@ -162,9 +164,7 @@ export default function AccountPage() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle>Ticket gratuit</CardTitle>
-                <CardDescription>
-                  Récupérez votre ticket gratuit
-                </CardDescription>
+                <CardDescription>Récupérez votre ticket gratuit</CardDescription>
               </div>
               {countdown !== null && countdown > 0 && (
                 <Badge className="flex items-center gap-1" variant="outline">
@@ -174,33 +174,31 @@ export default function AccountPage() {
               )}
             </div>
           </CardHeader>
-          
+
           <CardContent>
             <Progress className="mb-3 h-2" value={((60 - timeToNextTicket) / 60) * 100} />
-            
+
             <div className="flex flex-col items-center justify-center p-2">
               {countdown !== null && countdown > 0 ? (
                 <div className="w-full text-center">
                   <div className="rounded-lg bg-slate-50 p-4 text-center">
-                    <p className="text-slate-600 mb-2 text-sm">
-                      Disponible dans:
-                    </p>
-                    <div className="text-xl font-bold text-slate-800 mb-2">
+                    <p className="mb-2 text-sm text-slate-600">Disponible dans:</p>
+                    <div className="mb-2 text-xl font-bold text-slate-800">
                       {formatTime(countdown)}
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="w-full text-center">
-                  <Gift className="mx-auto h-10 w-10 mb-3 text-purple-500" />
-                  <p className="text-slate-600 mb-3 text-sm">
+                  <Gift className="mx-auto mb-3 h-10 w-10 text-purple-500" />
+                  <p className="mb-3 text-sm text-slate-600">
                     Votre ticket gratuit est disponible!
                   </p>
                 </div>
               )}
             </div>
           </CardContent>
-          
+
           <CardFooter>
             <Button
               className="w-full"
@@ -228,26 +226,21 @@ export default function AccountPage() {
               <Sparkles className="h-5 w-5 text-amber-500" />
             </div>
           </CardHeader>
-          
+
           <CardContent>
             <ul className="divide-y">
               {prizeHistory.map((item, index) => (
-                <li
-                  key={index}
-                  className="py-2 flex items-center justify-between"
-                >
+                <li key={index} className="flex items-center justify-between py-2">
                   <div>
                     <p className="font-medium text-slate-800">{item.name}</p>
                     <p className="text-xs text-slate-500">{item.date}</p>
                   </div>
-                  <Badge className="bg-purple-100 text-purple-700">
-                    {item.amount} pts
-                  </Badge>
+                  <Badge className="bg-purple-100 text-purple-700">{item.amount} pts</Badge>
                 </li>
               ))}
             </ul>
           </CardContent>
-          
+
           <CardFooter>
             <Button className="w-full" variant="outline">
               <ExternalLink className="mr-2 h-4 w-4" />

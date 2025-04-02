@@ -7,6 +7,7 @@ type MyTicketsContextType = {
   tickets: TicketWithPrize[] | null;
   setTickets: (value: TicketWithPrize[] | null) => void;
   loading: boolean;
+  refreshTickets: () => void;
 };
 
 const MyTicketsContext = createContext<MyTicketsContextType | undefined>(undefined);
@@ -27,8 +28,17 @@ export function MyTicketsProvider({ children }: { children: ReactNode }) {
     fetchTickets();
   }, []);
 
+  const refreshTickets = async () => {
+    const response = await fetch('/api/tickets');
+    if (!response.ok) {
+      throw new Error('Failed to fetch tickets');
+    }
+    const data = await response.json();
+    setTickets(data);
+  };
+
   return (
-    <MyTicketsContext.Provider value={{ tickets, setTickets, loading }}>
+    <MyTicketsContext.Provider value={{ tickets, setTickets, loading, refreshTickets }}>
       {children}
     </MyTicketsContext.Provider>
   );

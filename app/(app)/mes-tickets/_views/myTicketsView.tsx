@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCountdown } from '@/context/countdownProvider';
 import { useMyTickets } from '@/context/myTicketsProvider';
 import {
   Calendar,
@@ -22,23 +21,44 @@ import {
   HandCoins,
   Search,
   Ticket,
+  X,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
 import { useState } from 'react';
+import CountDownCase from '../_component/countDownCase';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { TicketWithPrize } from '@/types/types';
+import { ScratchToReveal } from '@/components/magicui/scratch-to-reveal';
+import { useCountdown } from '@/context/countdownProvider';
 
 // Utilisation des couleurs existantes des tickets premium
 import { premiumTickets } from '@/data/tickets';
 
 export default function MyTicketsView() {
-  const { tickets, loading } = useMyTickets();
-  const { countdown, formatTime } = useCountdown();
+  const { tickets, loading, refreshTickets } = useMyTickets();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all'); // 'all', 'revealed', 'unrevealed'
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [revealLoadingId, setRevealLoadingId] = useState<number | null>(null);
+  const [revealedTicket, setRevealedTicket] = useState<TicketWithPrize | null>(null);
+  const [error, setError] = useState('');
+  const [revealed, setRevealed] = useState(false);
+  const { countdown, formatTime } = useCountdown();
 
   // Filtrer les tickets en fonction de la recherche et du filtre
   const filteredTickets = tickets
     ? tickets.filter((ticket) => {
-        const matchesSearch = ticket.prize.prize_name.toLowerCase().includes(search.toLowerCase());
+        const matchesSearch = ticket.is_revealed
+          ? ticket.prize.prize_name.toLowerCase().includes(search.toLowerCase())
+          : 'Non révélé'.toLowerCase().includes(search.toLowerCase());
         const matchesFilter =
           filter === 'all' ||
           (filter === 'revealed' && ticket.is_revealed) ||
@@ -58,52 +78,83 @@ export default function MyTicketsView() {
 
   // Formatter la date
   const formatDate = (dateString: string | null | undefined): string => {
-    const date = new Date(dateString || '');
+    if (!dateString) return '';
+    const date = new Date(dateString);
     return date.toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
+  };
+
+  // Fonction pour révéler un ticket
+  const handleRevealTicket = async (ticketId: number) => {
+    try {
+      setRevealLoadingId(ticketId);
+      setError('');
+
+      // Appel API pour révéler le ticket
+      const response = await fetch(`/api/prize/reveal`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ attemptId: ticketId }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erreur lors de la révélation du ticket');
+      }
+
+      // Mise à jour des données et ouverture du modal
+      setRevealedTicket(tickets?.find((t) => t.id === ticketId) ?? null);
+      setIsModalOpen(true);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Une erreur est survenue lors de la révélation du ticket',
+      );
+      console.error('Erreur de révélation:', err);
+    } finally {
+      setRevealLoadingId(null);
+    }
+  };
+
+  const handleScratchComplete = () => {
+    refreshTickets();
+    setRevealed(true);
   };
 
   // Attribuer des couleurs issues de premiumTickets à chaque ticket
   const getTicketStyle = (id: string | number, isRevealed: boolean) => {
     if (!isRevealed) {
-      // Toujours utiliser la couleur Or pour les tickets non révélés
       return {
         color: premiumTickets[1].color, // Or
         textColor: premiumTickets[1].textColor,
-        buttonBg: 'bg-amber-600 hover:bg-amber-700'
+        buttonBg: 'bg-amber-600 hover:bg-amber-700',
       };
     }
-    
-    // Pour les tickets révélés, choisir une couleur basée sur l'ID
+
     const stringId = String(id);
     const seed = stringId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     const index = seed % premiumTickets.length;
-    
+
     const ticketStyle = premiumTickets[index];
-    let buttonBg = 'bg-slate-600 hover:bg-slate-700';
-    
-    switch(index) {
-      case 0: // Argent
-        buttonBg = 'bg-slate-600 hover:bg-slate-700';
-        break;
-      case 1: // Or
-        buttonBg = 'bg-amber-600 hover:bg-amber-700';
-        break;
-      case 2: // Platine
-        buttonBg = 'bg-cyan-600 hover:bg-cyan-700';
-        break;
-      case 3: // Mystère
-        buttonBg = 'bg-purple-600 hover:bg-purple-700';
-        break;
-    }
-    
+    const buttonBgs = [
+      'bg-slate-600 hover:bg-slate-700',
+      'bg-amber-600 hover:bg-amber-700',
+      'bg-cyan-600 hover:bg-cyan-700',
+      'bg-purple-600 hover:bg-purple-700',
+    ];
+
     return {
       color: ticketStyle.color,
       textColor: ticketStyle.textColor,
-      buttonBg: buttonBg
+      buttonBg: buttonBgs[index],
     };
   };
 
@@ -153,7 +204,9 @@ export default function MyTicketsView() {
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
         <Card className={`${premiumTickets[0].color} shadow-sm`}>
           <CardHeader className="pb-2">
-            <CardTitle className={`text-sm ${premiumTickets[0].textColor}`}>Total tickets</CardTitle>
+            <CardTitle className={`text-sm ${premiumTickets[0].textColor}`}>
+              Total tickets
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -165,7 +218,9 @@ export default function MyTicketsView() {
 
         <Card className={`${premiumTickets[2].color} shadow-sm`}>
           <CardHeader className="pb-2">
-            <CardTitle className={`text-sm ${premiumTickets[2].textColor}`}>Tickets révélés</CardTitle>
+            <CardTitle className={`text-sm ${premiumTickets[2].textColor}`}>
+              Tickets révélés
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -189,7 +244,9 @@ export default function MyTicketsView() {
 
         <Card className={`${premiumTickets[3].color} shadow-sm`}>
           <CardHeader className="pb-2">
-            <CardTitle className={`text-sm ${premiumTickets[3].textColor}`}>Prochain ticket</CardTitle>
+            <CardTitle className={`text-sm ${premiumTickets[3].textColor}`}>
+              Prochain ticket
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -267,7 +324,7 @@ export default function MyTicketsView() {
         ) : (
           filteredTickets.map((ticket) => {
             const ticketStyle = getTicketStyle(ticket.id, ticket.is_revealed);
-            
+
             return (
               <Card
                 key={ticket.id}
@@ -276,7 +333,7 @@ export default function MyTicketsView() {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle className={`${ticketStyle.textColor} text-xl`}>
-                      {ticket.prize.prize_name}
+                      {ticket.is_revealed ? ticket.prize.prize_name : 'Ticket mystère'}
                     </CardTitle>
                     {ticket.is_revealed ? (
                       <Eye className={`${ticketStyle.textColor} h-5 w-5`} />
@@ -289,12 +346,21 @@ export default function MyTicketsView() {
                 <CardContent>
                   {ticket.is_revealed ? (
                     <div className="flex flex-col gap-2">
-                      <div className={`flex items-center justify-center gap-2 text-xl font-bold ${ticketStyle.textColor}`}>
+                      <div
+                        className={`flex items-center justify-center gap-2 text-xl font-bold ${ticketStyle.textColor}`}
+                      >
                         {ticket.prize.prize_amount?.toFixed(2)} points
                       </div>
-                      <p className="mt-2 text-center text-sm text-slate-600">
-                        Obtenu le {formatDate(ticket.attempted_at)}
-                      </p>
+                      <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>{formatDate(ticket.attempted_at)}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>ID: {ticket.id.toString().substring(0, 8)}</span>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-3 py-4">
@@ -313,22 +379,19 @@ export default function MyTicketsView() {
                   {!ticket.is_revealed && (
                     <Button
                       className={`w-full ${ticketStyle.buttonBg}`}
+                      disabled={revealLoadingId === ticket.id}
                       variant="default"
+                      onClick={() => handleRevealTicket(ticket.id)}
                     >
-                      Révéler maintenant
+                      {revealLoadingId === ticket.id ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Révélation en cours...
+                        </>
+                      ) : (
+                        'Révéler maintenant'
+                      )}
                     </Button>
-                  )}
-                  {ticket.is_revealed && (
-                    <div className="flex w-full items-center justify-between text-xs text-slate-500">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>{formatDate(ticket.attempted_at)}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>ID: {ticket.id.toString().substring(0, 8)}</span>
-                      </div>
-                    </div>
                   )}
                 </CardFooter>
               </Card>
@@ -336,6 +399,71 @@ export default function MyTicketsView() {
           })
         )}
       </div>
+
+      {/* Dialog de révélation */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-center text-2xl">
+              {revealed ? revealedTicket?.prize.prize_name : '???'}
+            </DialogTitle>
+            <DialogDescription className="text-center">
+              Grattez pour découvrir votre gain !
+            </DialogDescription>
+          </DialogHeader>
+
+          {revealedTicket && (
+            <div className="flex justify-center p-4">
+              <ScratchToReveal
+                className="flex items-center justify-center overflow-hidden rounded-2xl border-2 bg-gray-100 shadow-lg"
+                gradientColors={['#A97CF8', '#F38CB8', '#FDCC92']}
+                height={300}
+                minScratchPercentage={30}
+                width={300}
+                onComplete={handleScratchComplete}
+              >
+                <div className="flex flex-col items-center justify-center p-4 text-center">
+                  <h2 className="mb-2 text-3xl font-bold">Félicitations !</h2>
+                  <p className="mb-4 text-xl">Vous avez gagné :</p>
+                  <div className="text-primary mb-2 text-5xl font-bold">
+                    {revealedTicket.prize.prize_amount.toFixed(2)} points
+                  </div>
+                  <p className="text-lg">{revealedTicket.prize.prize_name}</p>
+                  {revealed && (
+                    <Button
+                      className="mt-6"
+                      variant="outline"
+                      onClick={() => {
+                        setIsModalOpen(false);
+                        setRevealed(false);
+                        setRevealedTicket(null);
+                      }}
+                    >
+                      Collecter & Continuer
+                    </Button>
+                  )}
+                </div>
+              </ScratchToReveal>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-center text-red-500">
+              <p>{error}</p>
+              <Button
+                className="mt-4"
+                variant="outline"
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setError('');
+                }}
+              >
+                Fermer
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
