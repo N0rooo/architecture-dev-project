@@ -26,15 +26,18 @@ import {
   Wallet,
   Calendar,
   ExternalLink,
+  HandCoins,
+  Sparkles,
 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AccountPage() {
   const { countdown, formatTime } = useCountdown();
   const { profile, user } = useProfile();
   const [isPageLoaded, setIsPageLoaded] = useState(false);
   const router = useRouter();
+  const timeToNextTicket = countdown ? Math.floor(countdown / 60) % 60 : 0;
 
   // Statistiques de l'utilisateur
   const [userStats] = useState({
@@ -60,36 +63,42 @@ export default function AccountPage() {
   return (
     <div className="container mx-auto max-w-4xl py-10">
       {/* Profil utilisateur */}
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Mon Compte</h1>
+        <div className="flex items-center gap-2 rounded-lg bg-slate-100 p-3">
+          <HandCoins className="text-yellow-500" />
+          <span className="font-semibold">{profile?.points} points</span>
+        </div>
+      </div>
+
+      {/* En-tête de profil */}
       <div className="mb-8">
-        <Card className="bg-gradient-to-r from-slate-50 to-slate-100 shadow-sm">
-          <CardContent className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6">
-            <Avatar className="h-20 w-20 border-2 border-purple-200">
+        <Card className="bg-white shadow-sm">
+          <CardContent className="flex flex-col items-center gap-4 p-4 sm:flex-row sm:items-center">
+            <Avatar className="h-16 w-16 border-2 border-purple-200">
               <AvatarImage alt={profile?.full_name ?? ''} src={profile?.avatar_url ?? ''} />
-              <AvatarFallback className="text-2xl bg-purple-100 text-purple-700 uppercase">
+              <AvatarFallback className="bg-purple-100 text-xl text-purple-700 uppercase">
                 {profile?.full_name?.charAt(0) ?? user?.email?.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1 text-center sm:text-left">
-              <h1 className="text-2xl font-bold text-slate-800">
+              <h2 className="text-xl font-bold text-slate-800">
                 {profile?.full_name ?? user?.email}
-              </h1>
-              
-              <div className="flex items-center justify-center sm:justify-start gap-1 text-sm text-slate-500 mt-1">
+              </h2>
+
+              <div className="mt-1 flex items-center justify-center gap-1 text-sm text-slate-500 sm:justify-start">
                 <User className="h-3 w-3" />
                 <span>@{profile?.username ?? 'utilisateur'}</span>
               </div>
-              
-              <div className="flex items-center justify-center sm:justify-start gap-2 mt-3">
-                <Badge className="bg-purple-100 text-purple-700 py-1.5 px-3 flex items-center gap-1">
-                  <Wallet className="h-4 w-4" />
-                  <span className="font-bold">{profile?.points} points</span>
-                </Badge>
-                
-                <Badge className="bg-slate-100 text-slate-700 py-1.5 px-3 flex items-center gap-1">
+
+              <div className="mt-2 flex items-center justify-center gap-2 sm:justify-start">
+                <div className="flex items-center gap-1">
                   <Star className="h-4 w-4 text-amber-400" />
-                  <span>Membre depuis {formatDate(profile?.created_at ?? '').split(' ')[0]}</span>
-                </Badge>
+                  <span className="text-xs text-slate-500">
+                    Membre depuis: {formatDate(profile?.created_at ?? '').split(' ')[0]}
+                  </span>
+                </div>
               </div>
             </div>
           </CardContent>
@@ -98,42 +107,50 @@ export default function AccountPage() {
 
       {/* Statistiques principales */}
       <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col items-center text-center">
-              <TrendingUp className="h-8 w-8 mb-2 text-green-500" />
-              <span className="text-sm text-slate-600">Total Gagné</span>
-              <span className="text-2xl font-bold text-slate-800">{userStats.totalWon}</span>
+        <Card className="bg-gradient-to-r from-green-50 to-green-100 transition-all hover:shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-green-700">Total Gagné</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="text-green-500" />
+              <span className="text-2xl font-bold">{userStats.totalWon}</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-purple-50 to-violet-50 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col items-center text-center">
-              <Gift className="h-8 w-8 mb-2 text-purple-500" />
-              <span className="text-sm text-slate-600">Tickets Grattés</span>
-              <span className="text-2xl font-bold text-slate-800">{userStats.scratched}</span>
+        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 transition-all hover:shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-purple-700">Tickets Grattés</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Gift className="text-purple-500" />
+              <span className="text-2xl font-bold">{userStats.scratched}</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-amber-50 to-yellow-50 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col items-center text-center">
-              <Trophy className="h-8 w-8 mb-2 text-amber-500" />
-              <span className="text-sm text-slate-600">Plus Gros Gain</span>
-              <span className="text-2xl font-bold text-slate-800">{userStats.biggestWin}</span>
+        <Card className="bg-gradient-to-r from-amber-50 to-amber-100 transition-all hover:shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-amber-700">Plus Gros Gain</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Trophy className="text-amber-500" />
+              <span className="text-2xl font-bold">{userStats.biggestWin}</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-blue-50 to-sky-50 shadow-sm">
-          <CardContent className="p-4">
-            <div className="flex flex-col items-center text-center">
-              <Award className="h-8 w-8 mb-2 text-blue-500" />
-              <span className="text-sm text-slate-600">Série Actuelle</span>
-              <span className="text-2xl font-bold text-slate-800">{userStats.currentStreak} j</span>
+        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 transition-all hover:shadow-md">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-blue-700">Série Actuelle</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Award className="text-blue-500" />
+              <span className="text-2xl font-bold">{userStats.currentStreak} j</span>
             </div>
           </CardContent>
         </Card>
@@ -142,89 +159,90 @@ export default function AccountPage() {
       {/* Section principal et gains récents */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Ticket disponible */}
-        <Card className="shadow-sm">
+        <Card className="transition-all hover:shadow-md">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Prochain ticket gratuit</CardTitle>
-                <CardDescription>
-                  Récupérez votre ticket chaque jour
-                </CardDescription>
+                <CardTitle>Ticket gratuit</CardTitle>
+                <CardDescription>Récupérez votre ticket gratuit</CardDescription>
               </div>
-              <Badge variant="outline" className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" /> Quotidien
-              </Badge>
+              {countdown !== null && countdown > 0 && (
+                <Badge className="flex items-center gap-1" variant="outline">
+                  <Clock size={14} />
+                  {formatTime(countdown)}
+                </Badge>
+              )}
             </div>
           </CardHeader>
-          
+
           <CardContent>
+            <Progress className="mb-3 h-2" value={((60 - timeToNextTicket) / 60) * 100} />
+
             <div className="flex flex-col items-center justify-center p-2">
               {countdown !== null && countdown > 0 ? (
-                <div className="w-full">
+                <div className="w-full text-center">
                   <div className="rounded-lg bg-slate-50 p-4 text-center">
-                    <Clock className="mx-auto h-10 w-10 mb-3 text-slate-400" />
-                    <p className="text-slate-600 mb-2 text-sm">
-                      Disponible dans:
-                    </p>
-                    <div className="text-2xl font-bold text-slate-800 mb-4">
+                    <p className="mb-2 text-sm text-slate-600">Disponible dans:</p>
+                    <div className="mb-2 text-xl font-bold text-slate-800">
                       {formatTime(countdown)}
-                    </div>
-                    <Progress 
-                      className="h-2 mb-2" 
-                      value={Math.max(0, 100 - (countdown / 3600) * 100)} 
-                    />
-                    <div className="flex justify-between text-xs text-slate-500">
-                      <span>En attente</span>
-                      <span>Disponible</span>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="w-full rounded-lg border border-dashed border-slate-300 p-4 text-center">
-                  <Gift className="mx-auto h-10 w-10 mb-3 text-purple-500" />
-                  <p className="text-slate-600 mb-3 text-sm">
-                    Ticket gratuit disponible!
+                <div className="w-full text-center">
+                  <Gift className="mx-auto mb-3 h-10 w-10 text-purple-500" />
+                  <p className="mb-3 text-sm text-slate-600">
+                    Votre ticket gratuit est disponible!
                   </p>
-                  <Button size="sm" className="bg-purple-600 hover:bg-purple-700" onClick={() => {
-                    router.push('/ticket-gratuit');
-                  }}>
-                    Aller aux tickets
-                    <ArrowRight className="ml-2 h-4 w-4" />
-                  </Button>
                 </div>
               )}
             </div>
           </CardContent>
+
+          <CardFooter>
+            <Button
+              className="w-full"
+              disabled={timeToNextTicket > 0}
+              variant={timeToNextTicket > 0 ? 'outline' : 'default'}
+              onClick={() => {
+                if (timeToNextTicket <= 0) {
+                  router.push('/ticket-gratuit');
+                }
+              }}
+            >
+              {timeToNextTicket > 0 ? 'Disponible bientôt' : 'Récupérer ticket gratuit'}
+            </Button>
+          </CardFooter>
         </Card>
 
         {/* Historique des gains */}
-        <Card className="shadow-sm">
-          <CardHeader className="pb-2">
-            <CardTitle>Gains Récents</CardTitle>
-            <CardDescription>Vos 5 derniers prix</CardDescription>
+        <Card className="transition-all hover:shadow-md">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Gains Récents</CardTitle>
+                <CardDescription>Vos 5 derniers prix</CardDescription>
+              </div>
+              <Sparkles className="h-5 w-5 text-amber-500" />
+            </div>
           </CardHeader>
-          
+
           <CardContent>
             <ul className="divide-y">
               {prizeHistory.map((item, index) => (
-                <li
-                  key={index}
-                  className="py-2 flex items-center justify-between"
-                >
+                <li key={index} className="flex items-center justify-between py-2">
                   <div>
                     <p className="font-medium text-slate-800">{item.name}</p>
                     <p className="text-xs text-slate-500">{item.date}</p>
                   </div>
-                  <Badge className="bg-purple-100 text-purple-700">
-                    {item.amount} pts
-                  </Badge>
+                  <Badge className="bg-purple-100 text-purple-700">{item.amount} pts</Badge>
                 </li>
               ))}
             </ul>
           </CardContent>
-          
-          <CardFooter className="border-t pt-3">
-            <Button className="w-full" variant="outline" size="sm">
+
+          <CardFooter>
+            <Button className="w-full" variant="outline">
               <ExternalLink className="mr-2 h-4 w-4" />
               Voir Tout l'Historique
             </Button>

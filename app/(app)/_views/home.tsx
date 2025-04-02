@@ -1,20 +1,8 @@
 'use client';
 
 import HowItWorks from '@/components/HowItWorks';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useCountdown } from '@/context/countdownProvider';
-import { Clock, Gift, HandCoins, Loader2, Sparkles } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { Profile } from '@/types/types';
-import { useProfile } from '@/context/profileProvider';
-import { premiumTickets } from '@/data/tickets';
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -23,22 +11,31 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useCountdown } from '@/context/countdownProvider';
+import { useProfile } from '@/context/profileProvider';
+import { useMyTickets } from '@/context/myTicketsProvider';
+import { premiumTickets } from '@/data/tickets';
+import { Profile } from '@/types/types';
+import { Clock, Gift, HandCoins, Loader2, Sparkles } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import CountDownPart from '../_component/countDownPart';
-import { useMyTickets } from '@/context/myTicketsProvider';
 
 export default function HomeView({ user }: { user: Profile }) {
   const { profile, loading, removePointsOnClientSide } = useProfile();
   const [isBuyingTicket, setIsBuyingTicket] = useState(false);
   const [dialogOpen, setDialogOpen] = useState<Record<number, boolean>>({});
-
   const { refreshTickets } = useMyTickets();
 
   const userPoints = profile?.points;
 
   const handleBuyTicket = async (ticketId: number, price: number) => {
-    console.log('handleBuyTicket', ticketId, price);
     setIsBuyingTicket(true);
     try {
       const response = await fetch(`/api/prize/buy-ticket`, {
@@ -47,7 +44,9 @@ export default function HomeView({ user }: { user: Profile }) {
       });
       const data = await response.json();
       if (data.success) {
-        toast.success('Ticket acheté avec succès');
+        toast.success('Ticket acheté avec succès', {
+          description: "Retrouvez votre ticket dans la section 'Mes tickets'",
+        });
         removePointsOnClientSide(price);
         handleDialogToggle(ticketId);
         refreshTickets();
@@ -62,7 +61,7 @@ export default function HomeView({ user }: { user: Profile }) {
   };
 
   const handleDialogToggle = (ticketId: number) => {
-    setDialogOpen((prev: Record<number, boolean>) => ({ ...prev, [ticketId]: !prev[ticketId] }));
+    setDialogOpen((prev) => ({ ...prev, [ticketId]: !prev[ticketId] }));
   };
 
   if (loading) {
@@ -108,7 +107,6 @@ export default function HomeView({ user }: { user: Profile }) {
 
   return (
     <div className="container mx-auto max-w-4xl py-10">
-      {/* <div className="container mx-auto max-w-7xl py-10"></div> */}
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Tickets à Gratter</h1>
         <div className="flex items-center gap-2 rounded-lg bg-slate-100 p-3">
@@ -130,8 +128,8 @@ export default function HomeView({ user }: { user: Profile }) {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {premiumTickets.map((ticket, index) => (
-            <Card key={index} className={`${ticket.color} transition-all hover:shadow-lg`}>
+          {premiumTickets.map((ticket) => (
+            <Card key={ticket.id} className={`${ticket.color} transition-all hover:shadow-lg`}>
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className={`${ticket.textColor} text-xl`}>{ticket.name}</CardTitle>
@@ -141,7 +139,7 @@ export default function HomeView({ user }: { user: Profile }) {
               <CardContent>
                 <div className="flex flex-col gap-2">
                   <div
-                    className={`text-xl font-bold ${ticket.textColor} flex items-center justify-center gap-2`}
+                    className={`flex items-center justify-center gap-2 text-xl font-bold ${ticket.textColor}`}
                   >
                     {ticket.price} points
                   </div>
@@ -156,7 +154,11 @@ export default function HomeView({ user }: { user: Profile }) {
                   onOpenChange={() => handleDialogToggle(ticket.id)}
                 >
                   <AlertDialogTrigger asChild>
-                    <Button disabled={(userPoints ?? 0) < ticket.price}>
+                    <Button
+                      className="w-full"
+                      disabled={(userPoints ?? 0) < ticket.price}
+                      variant="default"
+                    >
                       {(userPoints ?? 0) >= ticket.price
                         ? 'Acheter & Gratter'
                         : 'Points insuffisants'}
@@ -175,11 +177,7 @@ export default function HomeView({ user }: { user: Profile }) {
                         disabled={isBuyingTicket}
                         onClick={() => handleBuyTicket(ticket.id, ticket.price)}
                       >
-                        {isBuyingTicket && (
-                          <>
-                            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
-                          </>
-                        )}
+                        {isBuyingTicket && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         {isBuyingTicket
                           ? 'Achat en cours...'
                           : `Acheter pour ${ticket.price} points`}
