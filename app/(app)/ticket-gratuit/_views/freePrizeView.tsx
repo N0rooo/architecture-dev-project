@@ -70,7 +70,7 @@ export default function FreePrizeView() {
   };
 
   return (
-    <div className="w-full flex flex-col items-center gap-6 p-6">
+    <div className="flex w-full flex-col items-center gap-6 p-6">
       {countdown !== null && countdown > 0 && (
         <Card className="w-full bg-gradient-to-r from-slate-50 to-slate-100 shadow-md">
           <CardHeader className="pb-2">
