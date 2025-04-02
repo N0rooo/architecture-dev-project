@@ -2,13 +2,32 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCountdown } from '@/context/countdownProvider';
 import { useMyTickets } from '@/context/myTicketsProvider';
-import { Calendar, Clock, Eye, EyeOff, Filter, Gift, HandCoins, Search, Ticket } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  Eye,
+  EyeOff,
+  Filter,
+  Gift,
+  HandCoins,
+  Search,
+  Ticket,
+  Sparkles,
+} from 'lucide-react';
 import { useState } from 'react';
+
+// Utilisation des couleurs existantes des tickets premium
+import { premiumTickets } from '@/data/tickets';
 
 export default function MyTicketsView() {
   const { tickets, loading } = useMyTickets();
@@ -30,22 +49,62 @@ export default function MyTicketsView() {
 
   // Calculer les statistiques
   const totalTickets = tickets?.length || 0;
-  const revealedTickets = tickets?.filter(t => t.is_revealed).length || 0;
-  const unrevealedTickets = tickets?.filter(t => !t.is_revealed).length || 0;
-  const totalValue = tickets
-    ?.filter(t => t.is_revealed)
-    .reduce((sum, ticket) => sum + (ticket.prize.prize_amount || 0), 0) || 0;
+  const revealedTickets = tickets?.filter((t) => t.is_revealed).length || 0;
+  const unrevealedTickets = tickets?.filter((t) => !t.is_revealed).length || 0;
+  const totalValue =
+    tickets
+      ?.filter((t) => t.is_revealed)
+      .reduce((sum, ticket) => sum + (ticket.prize.prize_amount || 0), 0) || 0;
 
   // Formatter la date
   const formatDate = (dateString: string | null | undefined): string => {
     const date = new Date(dateString || '');
-    return date.toLocaleDateString('fr-FR', { 
-      day: '2-digit', 
-      month: '2-digit', 
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
       year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
     });
+  };
+
+  // Attribuer des couleurs issues de premiumTickets à chaque ticket
+  const getTicketStyle = (id: string | number, isRevealed: boolean) => {
+    if (!isRevealed) {
+      // Toujours utiliser la couleur Or pour les tickets non révélés
+      return {
+        color: premiumTickets[1].color, // Or
+        textColor: premiumTickets[1].textColor,
+        buttonBg: 'bg-amber-600 hover:bg-amber-700'
+      };
+    }
+    
+    // Pour les tickets révélés, choisir une couleur basée sur l'ID
+    const stringId = String(id);
+    const seed = stringId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const index = seed % premiumTickets.length;
+    
+    const ticketStyle = premiumTickets[index];
+    let buttonBg = 'bg-slate-600 hover:bg-slate-700';
+    
+    switch(index) {
+      case 0: // Argent
+        buttonBg = 'bg-slate-600 hover:bg-slate-700';
+        break;
+      case 1: // Or
+        buttonBg = 'bg-amber-600 hover:bg-amber-700';
+        break;
+      case 2: // Platine
+        buttonBg = 'bg-cyan-600 hover:bg-cyan-700';
+        break;
+      case 3: // Mystère
+        buttonBg = 'bg-purple-600 hover:bg-purple-700';
+        break;
+    }
+    
+    return {
+      color: ticketStyle.color,
+      textColor: ticketStyle.textColor,
+      buttonBg: buttonBg
+    };
   };
 
   if (loading) {
@@ -77,72 +136,67 @@ export default function MyTicketsView() {
   }
 
   return (
-    <div className="w-full">
+    <div className="container mx-auto max-w-7xl py-10">
       {/* Header with title and stats summary */}
       <div className="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Mes Tickets</h1>
-          <p className="mt-2 text-slate-500">
-            Retrouvez tous vos tickets et suivez vos gains
-          </p>
+          <p className="mt-2 text-slate-500">Retrouvez tous vos tickets et suivez vos gains</p>
         </div>
-        <div className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-purple-50 to-indigo-50 p-4 shadow-sm">
-          <HandCoins className="h-6 w-6 text-purple-500" />
-          <div className="flex flex-col">
-            <span className="text-sm text-slate-500">Total points gagnés</span>
-            <span className="text-xl font-bold text-purple-700">{totalValue.toFixed(2)} points</span>
-          </div>
+        <div className="flex items-center gap-2 rounded-lg bg-slate-100 p-3">
+          <HandCoins className="text-yellow-500" />
+          <span className="font-semibold">{totalValue.toFixed(0)} points</span>
         </div>
       </div>
 
       {/* Statistics cards */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
-        <Card className="bg-gradient-to-r from-slate-50 to-slate-100 shadow-sm">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="rounded-full bg-slate-200 p-2">
-              <Ticket className="h-5 w-5 text-slate-700" />
-            </div>
-            <div>
-              <p className="text-sm text-slate-500">Total tickets</p>
-              <p className="text-xl font-bold text-slate-800">{totalTickets}</p>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-r from-green-50 to-emerald-50 shadow-sm">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="rounded-full bg-green-100 p-2">
-              <Eye className="h-5 w-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm text-slate-500">Tickets révélés</p>
-              <p className="text-xl font-bold text-green-700">{revealedTickets}</p>
+        <Card className={`${premiumTickets[0].color} shadow-sm`}>
+          <CardHeader className="pb-2">
+            <CardTitle className={`text-sm ${premiumTickets[0].textColor}`}>Total tickets</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Ticket className={premiumTickets[0].textColor} />
+              <span className="text-2xl font-bold">{totalTickets}</span>
             </div>
           </CardContent>
         </Card>
-        
-        <Card className="bg-gradient-to-r from-amber-50 to-yellow-50 shadow-sm">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="rounded-full bg-amber-100 p-2">
-              <EyeOff className="h-5 w-5 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-sm text-slate-500">À révéler</p>
-              <p className="text-xl font-bold text-amber-700">{unrevealedTickets}</p>
+
+        <Card className={`${premiumTickets[2].color} shadow-sm`}>
+          <CardHeader className="pb-2">
+            <CardTitle className={`text-sm ${premiumTickets[2].textColor}`}>Tickets révélés</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Eye className={premiumTickets[2].textColor} />
+              <span className="text-2xl font-bold">{revealedTickets}</span>
             </div>
           </CardContent>
         </Card>
-        
-        <Card className="bg-gradient-to-r from-blue-50 to-sky-50 shadow-sm">
-          <CardContent className="flex items-center gap-4 p-4">
-            <div className="rounded-full bg-blue-100 p-2">
-              <Gift className="h-5 w-5 text-blue-600" />
+
+        <Card className={`${premiumTickets[1].color} shadow-sm`}>
+          <CardHeader className="pb-2">
+            <CardTitle className={`text-sm ${premiumTickets[1].textColor}`}>À révéler</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <EyeOff className={premiumTickets[1].textColor} />
+              <span className="text-2xl font-bold">{unrevealedTickets}</span>
             </div>
-            <div>
-              <p className="text-sm text-slate-500">Prochain ticket</p>
-              <p className="text-xl font-bold text-blue-700">
+          </CardContent>
+        </Card>
+
+        <Card className={`${premiumTickets[3].color} shadow-sm`}>
+          <CardHeader className="pb-2">
+            <CardTitle className={`text-sm ${premiumTickets[3].textColor}`}>Prochain ticket</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Gift className={premiumTickets[3].textColor} />
+              <span className="text-2xl font-bold">
                 {countdown !== null ? formatTime(countdown) : '--:--:--'}
-              </p>
+              </span>
             </div>
           </CardContent>
         </Card>
@@ -151,20 +205,20 @@ export default function MyTicketsView() {
       {/* Search and filter toolbar */}
       <div className="mb-8 flex flex-col gap-4 rounded-xl bg-slate-50 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="relative max-w-xs">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input
-            className="pl-10 bg-white"
+            className="bg-white pl-10"
             placeholder="Rechercher un ticket..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        
+
         <div className="flex items-center gap-3">
           <span className="text-sm text-slate-500">Filtrer par:</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
+              <Button className="gap-2" variant="outline">
                 <Filter className="h-4 w-4" />
                 {filter === 'all' && 'Tous les tickets'}
                 {filter === 'revealed' && 'Tickets révélés'}
@@ -173,8 +227,12 @@ export default function MyTicketsView() {
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={() => setFilter('all')}>Tous les tickets</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilter('revealed')}>Tickets révélés</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setFilter('unrevealed')}>Tickets non révélés</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('revealed')}>
+                Tickets révélés
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setFilter('unrevealed')}>
+                Tickets non révélés
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -189,14 +247,14 @@ export default function MyTicketsView() {
             </div>
             <p className="mt-6 text-xl font-semibold text-slate-700">Aucun ticket trouvé</p>
             <p className="mt-2 text-sm text-slate-500">
-              {search || filter !== 'all' 
-                ? "Essayez de modifier vos critères de recherche ou de filtre"
-                : "Commencez par obtenir des tickets gratuits ou premium"}
+              {search || filter !== 'all'
+                ? 'Essayez de modifier vos critères de recherche ou de filtre'
+                : 'Commencez par obtenir des tickets gratuits ou premium'}
             </p>
             {(search || filter !== 'all') && (
-              <Button 
-                variant="outline" 
+              <Button
                 className="mt-4"
+                variant="outline"
                 onClick={() => {
                   setSearch('');
                   setFilter('all');
@@ -207,79 +265,75 @@ export default function MyTicketsView() {
             )}
           </div>
         ) : (
-          filteredTickets.map((ticket) => (
-            <Card
-              key={ticket.id}
-              className={`${
-                ticket.is_revealed 
-                  ? 'bg-gradient-to-r from-slate-50 to-slate-100' 
-                  : 'bg-gradient-to-r from-amber-50 to-yellow-50'
-              } overflow-hidden shadow-md hover:shadow-lg transition-all`}
-            >
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className={`rounded-full p-2 ${
-                      ticket.is_revealed ? 'bg-slate-200' : 'bg-amber-100'
-                    }`}>
-                      {ticket.is_revealed ? (
-                        <Eye className="h-4 w-4 text-slate-600" />
-                      ) : (
-                        <EyeOff className="h-4 w-4 text-amber-600" />
-                      )}
-                    </div>
-                    <CardTitle className="text-lg font-bold text-slate-800">{ticket.prize.prize_name}</CardTitle>
+          filteredTickets.map((ticket) => {
+            const ticketStyle = getTicketStyle(ticket.id, ticket.is_revealed);
+            
+            return (
+              <Card
+                key={ticket.id}
+                className={`${ticketStyle.color} transition-all hover:shadow-lg`}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className={`${ticketStyle.textColor} text-xl`}>
+                      {ticket.prize.prize_name}
+                    </CardTitle>
+                    {ticket.is_revealed ? (
+                      <Eye className={`${ticketStyle.textColor} h-5 w-5`} />
+                    ) : (
+                      <Sparkles className={`${ticketStyle.textColor} h-5 w-5`} />
+                    )}
                   </div>
-                  <Badge
-                    variant={ticket.is_revealed ? 'secondary' : 'default'}
-                    className={
-                      ticket.is_revealed
-                        ? 'bg-slate-200 text-slate-700'
-                        : 'bg-amber-100 text-amber-700'
-                    }
-                  >
-                    {ticket.is_revealed ? 'Révélé' : 'Non révélé'}
-                  </Badge>
-                </div>
-              </CardHeader>
-              
-              <CardContent className="pb-0">
-                {ticket.is_revealed ? (
-                  <div className="flex flex-col items-center gap-3 py-4">
-                    <div className="rounded-full bg-purple-100 p-4">
-                      <HandCoins className="h-8 w-8 text-purple-500" />
+                </CardHeader>
+
+                <CardContent>
+                  {ticket.is_revealed ? (
+                    <div className="flex flex-col gap-2">
+                      <div className={`flex items-center justify-center gap-2 text-xl font-bold ${ticketStyle.textColor}`}>
+                        {ticket.prize.prize_amount?.toFixed(2)} points
+                      </div>
+                      <p className="mt-2 text-center text-sm text-slate-600">
+                        Obtenu le {formatDate(ticket.attempted_at)}
+                      </p>
                     </div>
-                    <div className="bg-gradient-to-r from-purple-500 to-indigo-500 bg-clip-text text-3xl font-bold text-transparent">
-                      {ticket.prize.prize_amount?.toFixed(2)} points
+                  ) : (
+                    <div className="flex flex-col items-center gap-3 py-4">
+                      <div className={`rounded-full p-4 ${ticketStyle.color}`}>
+                        <Gift className={`h-8 w-8 ${ticketStyle.textColor} animate-pulse`} />
+                      </div>
+                      <p className="text-center text-sm">
+                        Ce ticket contient une surprise !<br />
+                        Révélez-le pour voir votre gain.
+                      </p>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center gap-3 py-8">
-                    <div className="rounded-full bg-amber-100 p-5">
-                      <Gift className="h-10 w-10 text-amber-500 animate-pulse" />
-                    </div>
-                    <p className="text-center text-amber-700">
-                      Ce ticket contient une surprise !<br />Révélez-le pour voir votre gain.
-                    </p>
-                    <Button variant="outline" className="mt-2">
+                  )}
+                </CardContent>
+
+                <CardFooter className="flex justify-center">
+                  {!ticket.is_revealed && (
+                    <Button
+                      className={`w-full ${ticketStyle.buttonBg}`}
+                      variant="default"
+                    >
                       Révéler maintenant
                     </Button>
-                  </div>
-                )}
-              </CardContent>
-              
-              <CardFooter className="flex items-center justify-between border-t border-slate-200 bg-white bg-opacity-50 px-4 py-3 text-xs text-slate-500">
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  <span>{formatDate(ticket.attempted_at)}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  <span>ID: {String(ticket.id).substring(0, 8)}</span>
-                </div>
-              </CardFooter>
-            </Card>
-          ))
+                  )}
+                  {ticket.is_revealed && (
+                    <div className="flex w-full items-center justify-between text-xs text-slate-500">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        <span>{formatDate(ticket.attempted_at)}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>ID: {ticket.id.toString().substring(0, 8)}</span>
+                      </div>
+                    </div>
+                  )}
+                </CardFooter>
+              </Card>
+            );
+          })
         )}
       </div>
     </div>

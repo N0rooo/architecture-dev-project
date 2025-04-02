@@ -44,28 +44,28 @@ export default function LeaderboardView() {
           icon: <Crown className="h-5 w-5" />,
           color: 'bg-gradient-to-r from-yellow-400 to-amber-300 text-amber-900',
           textColor: 'text-amber-900',
-          badge: 'bg-amber-100 text-amber-800'
+          badge: 'bg-amber-100 text-amber-800',
         };
       case 1:
         return {
           icon: <Medal className="h-5 w-5" />,
           color: 'bg-gradient-to-r from-slate-300 to-slate-200 text-slate-700',
           textColor: 'text-slate-700',
-          badge: 'bg-slate-100 text-slate-700'
+          badge: 'bg-slate-100 text-slate-700',
         };
       case 2:
         return {
           icon: <Award className="h-5 w-5" />,
           color: 'bg-gradient-to-r from-amber-600 to-amber-500 text-amber-100',
           textColor: 'text-amber-700',
-          badge: 'bg-amber-100 text-amber-700'
+          badge: 'bg-amber-100 text-amber-700',
         };
       default:
         return {
           icon: <Star className="h-4 w-4" />,
           color: 'bg-slate-100 text-slate-700',
           textColor: 'text-slate-600',
-          badge: 'bg-slate-100 text-slate-700'
+          badge: 'bg-slate-100 text-slate-700',
         };
     }
   };
@@ -77,17 +77,17 @@ export default function LeaderboardView() {
           <Skeleton className="h-12 w-60" />
           <Skeleton className="h-6 w-96" />
         </div>
-        
+
         <div className="mb-6">
           <Skeleton className="h-10 w-60" />
         </div>
-        
+
         <div className="mb-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} className="h-24 w-full rounded-xl" />
           ))}
         </div>
-        
+
         <div className="space-y-4">
           {[...Array(7)].map((_, i) => (
             <Skeleton key={i} className="h-20 w-full rounded-xl" />
@@ -123,7 +123,7 @@ export default function LeaderboardView() {
           Découvrez les meilleurs joueurs et leur nombre de points
         </p>
       </div>
-      
+
       {/* Info cards */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card className="bg-gradient-to-r from-slate-50 to-slate-100 shadow-sm">
@@ -137,7 +137,7 @@ export default function LeaderboardView() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-r from-amber-50 to-yellow-50 shadow-sm">
           <CardContent className="flex items-center gap-4 p-4">
             <div className="rounded-full bg-amber-100 p-2">
@@ -151,7 +151,7 @@ export default function LeaderboardView() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-r from-blue-50 to-sky-50 shadow-sm sm:col-span-2 lg:col-span-1">
           <CardContent className="flex items-center gap-4 p-4">
             <div className="rounded-full bg-blue-100 p-2">
@@ -160,15 +160,18 @@ export default function LeaderboardView() {
             <div>
               <p className="text-sm text-slate-500">Moyenne des points</p>
               <p className="text-xl font-bold text-blue-700">
-                {leaderboard.length > 0 
-                  ? Math.round(leaderboard.reduce((sum, user) => sum + user.points, 0) / leaderboard.length) 
-                  : 0} points
+                {leaderboard.length > 0
+                  ? Math.round(
+                      leaderboard.reduce((sum, user) => sum + user.points, 0) / leaderboard.length,
+                    )
+                  : 0}{' '}
+                points
               </p>
             </div>
           </CardContent>
         </Card>
       </div>
-      
+
       {/* Top 3 winners section - desktop only */}
       {topUsers.length > 0 && (
         <div className="mb-10 hidden lg:grid lg:grid-cols-3 lg:gap-6">
@@ -178,19 +181,19 @@ export default function LeaderboardView() {
             const actualIndex = adjustedIndex;
             const { icon, color, textColor, badge } = getRankStyling(actualIndex);
             const imageSize = 64;
-            
+
             return (
               <div key={user.id} className="flex">
                 <Card className="max-h-80 w-full overflow-hidden shadow-md transition-all hover:shadow-lg">
                   <div className={`${color} py-3 text-center`}>
                     <div className="flex items-center justify-center gap-1 font-semibold">
                       {icon}
-                      {actualIndex === 0 ? "1ère place" : `${actualIndex + 1}ème place`}
+                      {actualIndex === 0 ? '1ère place' : `${actualIndex + 1}ème place`}
                     </div>
                   </div>
-                  
+
                   <CardContent className="flex flex-col items-center justify-center p-6">
-                    <div className="relative mb-3 mt-2">
+                    <div className="relative mt-2 mb-3">
                       {user.avatar_url ? (
                         <Image
                           alt={user.username || 'User avatar'}
@@ -205,14 +208,14 @@ export default function LeaderboardView() {
                         </div>
                       )}
                     </div>
-                    
+
                     <h3 className="mb-1 text-lg font-semibold text-slate-800">
                       {user.full_name || user.username || 'Anonymous'}
                     </h3>
                     <p className="mb-2 text-sm text-slate-500">@{user.username}</p>
-                    
+
                     <div className="mt-1 flex flex-col items-center">
-                      <div className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                      <div className="bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-2xl font-bold text-transparent">
                         {user.points} points
                       </div>
                     </div>
@@ -223,11 +226,11 @@ export default function LeaderboardView() {
           })}
         </div>
       )}
-      
+
       {/* Main leaderboard listing */}
       <div className="w-full space-y-4">
         {/* Top 3 on mobile shown as list items */}
-        <div className="lg:hidden space-y-3">
+        <div className="space-y-3 lg:hidden">
           {topUsers.map((profile, index) => {
             const { icon, color, badge } = getRankStyling(index);
             return (
@@ -236,7 +239,9 @@ export default function LeaderboardView() {
                 className="flex items-center justify-between rounded-lg bg-white p-4 shadow-md transition-all hover:shadow-lg"
               >
                 <div className="flex items-center gap-4">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-full ${color}`}>
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-full ${color}`}
+                  >
                     {icon}
                   </div>
                   <div className="flex items-center gap-3">
@@ -262,15 +267,13 @@ export default function LeaderboardView() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className={`${badge} font-medium`}>
-                    {profile.points} points
-                  </Badge>
+                  <Badge className={`${badge} font-medium`}>{profile.points} points</Badge>
                 </div>
               </div>
             );
           })}
         </div>
-        
+
         {/* Rest of the users in a standard list */}
         {restOfUsers.length === 0 && filteredLeaderboard.length === 0 ? (
           <Card className="bg-slate-50 py-8">
@@ -279,9 +282,7 @@ export default function LeaderboardView() {
                 <Users className="h-10 w-10 text-slate-400" />
               </div>
               <h3 className="mt-4 text-xl font-semibold text-slate-700">Aucun joueur trouvé</h3>
-              <p className="mt-2 text-sm text-slate-500">
-                Le classement est vide pour le moment.
-              </p>
+              <p className="mt-2 text-sm text-slate-500">Le classement est vide pour le moment.</p>
             </CardContent>
           </Card>
         ) : (
