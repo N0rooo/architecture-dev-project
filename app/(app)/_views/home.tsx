@@ -25,18 +25,20 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import CountDownPart from '../_component/countDownPart';
+import { useMyTickets } from '@/context/myTicketsProvider';
 
 export default function HomeView({ user }: { user: Profile }) {
-  const { countdown, formatTime } = useCountdown();
-  const router = useRouter();
-  const timeToNextTicket = countdown ? Math.floor(countdown / 60) % 60 : 0;
   const { profile, loading, removePointsOnClientSide } = useProfile();
   const [isBuyingTicket, setIsBuyingTicket] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState<Record<number, boolean>>({});
+
+  const { refreshTickets } = useMyTickets();
 
   const userPoints = profile?.points;
 
   const handleBuyTicket = async (ticketId: number, price: number) => {
+    console.log('handleBuyTicket', ticketId, price);
     setIsBuyingTicket(true);
     try {
       const response = await fetch(`/api/prize/buy-ticket`, {
@@ -45,11 +47,10 @@ export default function HomeView({ user }: { user: Profile }) {
       });
       const data = await response.json();
       if (data.success) {
-        toast.success('Ticket acheté avec succès', {
-          description: "Retrouvez votre ticket dans la section 'Mes tickets'",
-        });
+        toast.success('Ticket acheté avec succès');
         removePointsOnClientSide(price);
-        setIsOpen(false);
+        handleDialogToggle(ticketId);
+        refreshTickets();
       } else {
         toast.error("Erreur lors de l'achat du ticket");
       }
@@ -58,6 +59,10 @@ export default function HomeView({ user }: { user: Profile }) {
     } finally {
       setIsBuyingTicket(false);
     }
+  };
+
+  const handleDialogToggle = (ticketId: number) => {
+    setDialogOpen((prev: Record<number, boolean>) => ({ ...prev, [ticketId]: !prev[ticketId] }));
   };
 
   if (loading) {
@@ -112,36 +117,7 @@ export default function HomeView({ user }: { user: Profile }) {
         </div>
       </div>
 
-      <div className="mb-8 rounded-xl bg-slate-50 p-6">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-xl font-semibold">
-            <Gift className="text-green-500" />
-            Ticket gratuit
-          </h2>
-          {countdown !== null && countdown > 0 && (
-            <Badge className="flex items-center gap-1" variant="outline">
-              <Clock size={14} />
-              {formatTime(countdown)}
-            </Badge>
-          )}
-        </div>
-        <p className="mb-3 text-sm text-slate-600">
-          Vous avez droit à un ticket basique gratuit toutes les heures
-        </p>
-        <Progress className="mb-3 h-2" value={((60 - timeToNextTicket) / 60) * 100} />
-        <Button
-          className="mt-2 w-full"
-          disabled={timeToNextTicket > 0}
-          variant={timeToNextTicket > 0 ? 'outline' : 'default'}
-          onClick={() => {
-            if (timeToNextTicket <= 0) {
-              router.push('/ticket-gratuit');
-            }
-          }}
-        >
-          {timeToNextTicket > 0 ? 'Disponible bientôt' : 'Récupérer ticket gratuit'}
-        </Button>
-      </div>
+      <CountDownPart />
 
       <div className="mt-6">
         <div className="m-4 flex items-center justify-between">
@@ -175,13 +151,12 @@ export default function HomeView({ user }: { user: Profile }) {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-center">
-                <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+                <AlertDialog
+                  open={dialogOpen[ticket.id] || false}
+                  onOpenChange={() => handleDialogToggle(ticket.id)}
+                >
                   <AlertDialogTrigger asChild>
-                    <Button
-                      className="w-full"
-                      disabled={(userPoints ?? 0) < ticket.price}
-                      variant="default"
-                    >
+                    <Button disabled={(userPoints ?? 0) < ticket.price}>
                       {(userPoints ?? 0) >= ticket.price
                         ? 'Acheter & Gratter'
                         : 'Points insuffisants'}

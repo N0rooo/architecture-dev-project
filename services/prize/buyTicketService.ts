@@ -18,8 +18,6 @@ export const buyTicketService = async ({
     p_category_id: ticketId,
   });
 
-  console.log({ data });
-
   if (error) {
     return { success: false, error: error };
   }
