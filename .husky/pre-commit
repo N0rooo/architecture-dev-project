@@ -1,8 +1,8 @@
-npx lint-staged
+
+# Type checking
 npx tsc --noEmit
 
-pnpm run prettier
-pnpm run prettier:check
-pnpm run format
-pnpm run check
-pnpm run lint
+# Linting and formatting (already using prettier in lint-staged)
+npx lint-staged
+
+
