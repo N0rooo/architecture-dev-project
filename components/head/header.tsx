@@ -24,6 +24,7 @@ import LogoutButton from './logoutButton';
 const navigation = [
   { name: 'Home', href: '/' },
   { name: 'Free Ticket', href: '/free-prize' },
+  { name: 'Leaderboard', href: '/leaderboard' },
 ];
 
 export function Header({ user }: { user: User | null }) {
