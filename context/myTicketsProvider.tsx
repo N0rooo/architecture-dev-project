@@ -1,7 +1,6 @@
 'use client';
 
-import { Profile, TicketWithPrize } from '@/types/types';
-import { User } from '@supabase/supabase-js';
+import { TicketWithPrize } from '@/types/types';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 
 type MyTicketsContextType = {

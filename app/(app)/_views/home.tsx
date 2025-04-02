@@ -103,6 +103,7 @@ export default function HomeView({ user }: { user: Profile }) {
 
   return (
     <div className="container mx-auto max-w-4xl py-10">
+      {/* <div className="container mx-auto max-w-7xl py-10"></div> */}
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Tickets à Gratter</h1>
         <div className="flex items-center gap-2 rounded-lg bg-slate-100 p-3">
