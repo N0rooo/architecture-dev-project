@@ -12,14 +12,48 @@ import { useRouter } from 'next/navigation';
 import { Profile } from '@/types/types';
 import { useProfile } from '@/context/profileProvider';
 import { premiumTickets } from '@/data/tickets';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function HomeView({ user }: { user: Profile }) {
   const { countdown, formatTime } = useCountdown();
   const router = useRouter();
-  const timeToNextTicket = countdown ? Math.floor(countdown / 60) % 60 : 100;
+  const timeToNextTicket = countdown ? Math.floor(countdown / 60) % 60 : 0;
   const { profile, loading } = useProfile();
+  const [isBuyingTicket, setIsBuyingTicket] = useState(false);
 
   const userPoints = profile?.points;
+
+  const handleBuyTicket = async (ticketId: number) => {
+    setIsBuyingTicket(true);
+    try {
+      const response = await fetch(`/api/buy-ticket`, {
+        method: 'POST',
+        body: JSON.stringify({ ticketId }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        toast.success('Ticket acheté avec succès');
+      } else {
+        toast.error("Erreur lors de l'achat du ticket");
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsBuyingTicket(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -95,7 +129,7 @@ export default function HomeView({ user }: { user: Profile }) {
           variant={timeToNextTicket > 0 ? 'outline' : 'default'}
           onClick={() => {
             if (timeToNextTicket <= 0) {
-              router.push('/cashprize');
+              router.push('/free-prize');
             }
           }}
         >
@@ -135,13 +169,33 @@ export default function HomeView({ user }: { user: Profile }) {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-center">
-                <Button
-                  className="w-full"
-                  disabled={(userPoints ?? 0) < ticket.price}
-                  variant="default"
-                >
-                  {(userPoints ?? 0) >= ticket.price ? 'Acheter & Gratter' : 'Points insuffisants'}
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      className="w-full"
+                      disabled={(userPoints ?? 0) < ticket.price}
+                      variant="default"
+                    >
+                      {(userPoints ?? 0) >= ticket.price
+                        ? 'Acheter & Gratter'
+                        : 'Points insuffisants'}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Voulez-vous vraiment acheter ce ticket ?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Cela vous coûtera {ticket.price} points.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleBuyTicket(ticket.id)}>
+                        Acheter pour {ticket.price} points
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </CardFooter>
             </Card>
           ))}
