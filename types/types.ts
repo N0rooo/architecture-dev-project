@@ -10,3 +10,6 @@ export type SignupFormValues = z.infer<typeof signupSchema>;
 // SUPABASE TYPES
 export type Prize = Database['public']['Tables']['prize']['Row'];
 export type Profile = Database['public']['Tables']['profiles']['Row'];
+export type Ticket = Database['public']['Tables']['user_prize_attempts']['Row'];
+
+export type TicketWithPrize = Ticket & { prize: Prize };

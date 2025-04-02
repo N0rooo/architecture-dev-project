@@ -1,5 +1,6 @@
 export const premiumTickets = [
   {
+    id: 1,
     name: 'Argent',
     price: 100,
     minReward: 0,
@@ -8,6 +9,7 @@ export const premiumTickets = [
     textColor: 'text-slate-700',
   },
   {
+    id: 2,
     name: 'Or',
     price: 250,
     minReward: 50,
@@ -16,6 +18,7 @@ export const premiumTickets = [
     textColor: 'text-amber-700',
   },
   {
+    id: 3,
     name: 'Platine',
     price: 500,
     minReward: 100,
@@ -24,6 +27,7 @@ export const premiumTickets = [
     textColor: 'text-cyan-700',
   },
   {
+    id: 4,
     name: 'Mystère',
     price: 350,
     minReward: 0,

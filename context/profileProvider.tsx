@@ -9,6 +9,7 @@ type ProfileContextType = {
   setProfile: (value: Profile | null) => void;
   user: User | null;
   loading: boolean;
+  removePointsOnClientSide: (points: number) => void;
 };
 
 const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
@@ -29,8 +30,17 @@ export function ProfileProvider({ children, user }: { children: ReactNode; user:
     fetchProfile();
   }, []);
 
+  const removePointsOnClientSide = (points: number) => {
+    setProfile((prevProfile) => {
+      if (!prevProfile) return null;
+      return { ...prevProfile, points: prevProfile.points - points };
+    });
+  };
+
   return (
-    <ProfileContext.Provider value={{ profile, setProfile, user, loading }}>
+    <ProfileContext.Provider
+      value={{ profile, setProfile, user, loading, removePointsOnClientSide }}
+    >
       {children}
     </ProfileContext.Provider>
   );
