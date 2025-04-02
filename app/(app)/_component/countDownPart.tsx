@@ -6,7 +6,7 @@ import { Clock, Gift } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 
-export default function countDownPart() {
+export default function CountDownPart() {
   const { countdown, formatTime } = useCountdown();
   const router = useRouter();
   const timeToNextTicket = countdown ? Math.floor(countdown / 60) % 60 : 0;
