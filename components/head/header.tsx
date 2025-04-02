@@ -22,9 +22,11 @@ import { User } from '@supabase/supabase-js';
 import LogoutButton from './logoutButton';
 
 const navigation = [
+
   { name: 'Accueil', href: '/' },
   { name: 'Tickets gratuits', href: '/ticket-gratuit' },
   { name: 'Mes tickets', href: '/mes-tickets' },
+  { name: 'Leaderboard', href: '/leaderboard' },
 ];
 
 export function Header({ user }: { user: User | null }) {
