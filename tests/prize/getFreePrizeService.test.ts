@@ -1,4 +1,4 @@
-import { getCashPrizeService } from '@/services/cashprize/getCashPrize';
+import { getFreePrizeService } from '@/services/prize/getFreePrizeService';
 import { createAppServerClient } from '@/supabase/server';
 
 // Mock the Supabase client
@@ -7,6 +7,16 @@ jest.mock('../../supabase/server', () => ({
 }));
 
 describe('getCashPrizeService', () => {
+  // Add this at the start of your describe block
+  const originalConsoleError = console.error;
+  beforeAll(() => {
+    console.error = jest.fn();
+  });
+
+  afterAll(() => {
+    console.error = originalConsoleError;
+  });
+
   // Clear mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();
@@ -36,7 +46,7 @@ describe('getCashPrizeService', () => {
 
     (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-    const result = await getCashPrizeService();
+    const result = await getFreePrizeService();
 
     expect(result).toEqual({
       success: true,
@@ -48,7 +58,7 @@ describe('getCashPrizeService', () => {
       },
       error: null,
     });
-    expect(mockSupabase.rpc).toHaveBeenCalledWith('generate_user_prize', {
+    expect(mockSupabase.rpc).toHaveBeenCalledWith('generate_free_prize', {
       p_user_id: 'test-user-id',
     });
   });
@@ -65,7 +75,7 @@ describe('getCashPrizeService', () => {
 
     (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-    const result = await getCashPrizeService();
+    const result = await getFreePrizeService();
 
     expect(result).toEqual({
       success: false,
@@ -97,7 +107,7 @@ describe('getCashPrizeService', () => {
 
     (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-    const result = await getCashPrizeService();
+    const result = await getFreePrizeService();
 
     expect(result).toEqual({
       success: false,
@@ -126,7 +136,7 @@ describe('getCashPrizeService', () => {
 
     (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
 
-    const result = await getCashPrizeService();
+    const result = await getFreePrizeService();
 
     expect(result).toEqual({
       success: false,
@@ -134,8 +144,87 @@ describe('getCashPrizeService', () => {
       prize: null,
       error: mockError,
     });
-    expect(mockSupabase.rpc).toHaveBeenCalledWith('generate_user_prize', {
+    expect(mockSupabase.rpc).toHaveBeenCalledWith('generate_free_prize', {
       p_user_id: 'test-user-id',
+    });
+  });
+
+  it('should handle null prize data', async () => {
+    const mockSupabase = {
+      auth: {
+        getUser: jest.fn().mockResolvedValue({
+          data: { user: { id: 'test-user-id' } },
+        }),
+      },
+      rpc: jest.fn().mockReturnValue({
+        single: jest.fn().mockResolvedValue({
+          data: {
+            can_generate: true,
+            prize_id: null,
+            prize_name: null,
+            prize_amount: null,
+            time_remaining: '0 min 0 sec',
+          },
+          error: null,
+        }),
+      }),
+    };
+
+    (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
+
+    const result = await getFreePrizeService();
+
+    expect(result).toEqual({
+      success: false,
+      timeRemaining: '0 min 0 sec',
+      prize: null,
+      error: null,
+    });
+  });
+
+  it('should handle empty response data', async () => {
+    const mockSupabase = {
+      auth: {
+        getUser: jest.fn().mockResolvedValue({
+          data: { user: { id: 'test-user-id' } },
+        }),
+      },
+      rpc: jest.fn().mockReturnValue({
+        single: jest.fn().mockResolvedValue({
+          data: null,
+          error: null,
+        }),
+      }),
+    };
+
+    (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
+
+    const result = await getFreePrizeService();
+
+    expect(result).toEqual({
+      success: false,
+      timeRemaining: '',
+      prize: null,
+      error: null,
+    });
+  });
+
+  it('should handle auth service errors', async () => {
+    const mockSupabase = {
+      auth: {
+        getUser: jest.fn().mockRejectedValue(new Error('Auth service error')),
+      },
+    };
+
+    (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
+
+    const result = await getFreePrizeService();
+
+    expect(result).toEqual({
+      success: false,
+      timeRemaining: '',
+      prize: null,
+      error: expect.any(Error),
     });
   });
 });

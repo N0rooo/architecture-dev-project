@@ -1,60 +1,133 @@
 export type Database = {
   public: {
     Tables: {
-      cashprize: {
+      points_history: {
+        Row: {
+          amount: number;
+          created_at: string | null;
+          description: string | null;
+          id: number;
+          reference_id: number | null;
+          reference_type: string | null;
+          source: string;
+          user_id: string;
+        };
+        Insert: {
+          amount: number;
+          created_at?: string | null;
+          description?: string | null;
+          id?: number;
+          reference_id?: number | null;
+          reference_type?: string | null;
+          source: string;
+          user_id: string;
+        };
+        Update: {
+          amount?: number;
+          created_at?: string | null;
+          description?: string | null;
+          id?: number;
+          reference_id?: number | null;
+          reference_type?: string | null;
+          source?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'fk_user_id';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      prize: {
         Row: {
           created_at: string | null;
           id: number;
           is_active: boolean | null;
           prize_amount: number;
+          prize_category: number | null;
           prize_name: string;
           probability: number;
-          updated_at: string | null;
         };
         Insert: {
           created_at?: string | null;
           id?: number;
           is_active?: boolean | null;
           prize_amount: number;
+          prize_category?: number | null;
           prize_name: string;
           probability: number;
-          updated_at?: string | null;
         };
         Update: {
           created_at?: string | null;
           id?: number;
           is_active?: boolean | null;
           prize_amount?: number;
+          prize_category?: number | null;
           prize_name?: string;
           probability?: number;
-          updated_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'cashprize_prize_category_fkey';
+            columns: ['prize_category'];
+            isOneToOne: false;
+            referencedRelation: 'prize_category';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      prize_category: {
+        Row: {
+          cost: number | null;
+          id: number;
+          name: string | null;
+        };
+        Insert: {
+          cost?: number | null;
+          id?: number;
+          name?: string | null;
+        };
+        Update: {
+          cost?: number | null;
+          id?: number;
+          name?: string | null;
         };
         Relationships: [];
       };
       profiles: {
         Row: {
           avatar_url: string | null;
+          created_at: string;
           full_name: string | null;
           id: string;
           last_opened_cashprize_at: string | null;
+          points: number;
           updated_at: string | null;
           username: string | null;
           website: string | null;
         };
         Insert: {
           avatar_url?: string | null;
+          created_at?: string;
           full_name?: string | null;
           id: string;
           last_opened_cashprize_at?: string | null;
+          points?: number;
           updated_at?: string | null;
           username?: string | null;
           website?: string | null;
         };
         Update: {
           avatar_url?: string | null;
+          created_at?: string;
           full_name?: string | null;
           id?: string;
           last_opened_cashprize_at?: string | null;
+          points?: number;
           updated_at?: string | null;
           username?: string | null;
           website?: string | null;
@@ -65,6 +138,8 @@ export type Database = {
         Row: {
           attempted_at: string | null;
           id: number;
+          is_free: boolean;
+          is_revealed: boolean;
           prize_id: number | null;
           success: boolean;
           user_id: string;
@@ -72,6 +147,8 @@ export type Database = {
         Insert: {
           attempted_at?: string | null;
           id?: number;
+          is_free?: boolean;
+          is_revealed?: boolean;
           prize_id?: number | null;
           success?: boolean;
           user_id: string;
@@ -79,6 +156,8 @@ export type Database = {
         Update: {
           attempted_at?: string | null;
           id?: number;
+          is_free?: boolean;
+          is_revealed?: boolean;
           prize_id?: number | null;
           success?: boolean;
           user_id?: string;
@@ -95,56 +174,34 @@ export type Database = {
             foreignKeyName: 'user_prize_attempts_prize_id_fkey';
             columns: ['prize_id'];
             isOneToOne: false;
-            referencedRelation: 'cashprize';
+            referencedRelation: 'prize';
             referencedColumns: ['id'];
           },
         ];
-      };
-      users: {
-        Row: {
-          address: string;
-          avatar: string;
-          company: string;
-          created_at: string;
-          email: string;
-          id: string;
-          name: string;
-          phone: string;
-        };
-        Insert: {
-          address: string;
-          avatar: string;
-          company: string;
-          created_at?: string;
-          email: string;
-          id?: string;
-          name: string;
-          phone: string;
-        };
-        Update: {
-          address?: string;
-          avatar?: string;
-          company?: string;
-          created_at?: string;
-          email?: string;
-          id?: string;
-          name?: string;
-          phone?: string;
-        };
-        Relationships: [];
       };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      can_user_generate_prize: {
+      add_points_history: {
+        Args: {
+          p_user_id: string;
+          p_amount: number;
+          p_source: string;
+          p_description?: string;
+          p_reference_id?: number;
+          p_reference_type?: string;
+        };
+        Returns: number;
+      };
+      can_user_generate_free_prize: {
         Args: {
           p_user_id: string;
         };
         Returns: boolean;
       };
-      generate_user_prize: {
+      generate_free_prize: {
         Args: {
           p_user_id: string;
         };
@@ -156,22 +213,60 @@ export type Database = {
           prize_amount: number;
         }[];
       };
-      get_next_prize_time: {
+      generate_user_prize: {
+        Args: {
+          p_user_id: string;
+          p_category_id?: number;
+          p_is_free?: boolean;
+        };
+        Returns: {
+          can_generate: boolean;
+          time_remaining: string;
+          prize_id: number;
+          prize_name: string;
+          prize_amount: number;
+          multiplier_applied: boolean;
+          multiplier_name: string;
+          multiplier_value: number;
+        }[];
+      };
+      get_next_free_prize_time: {
         Args: {
           p_user_id: string;
         };
         Returns: {
           can_generate_now: boolean;
-          next_available_at: string;
+          next_time: string;
           time_remaining: string;
         }[];
       };
-      select_random_prize: {
-        Args: Record<PropertyKey, never>;
+      purchase_ticket_and_generate_prize: {
+        Args: {
+          p_user_id: string;
+          p_category_id: number;
+        };
         Returns: {
-          id: number;
+          success: boolean;
+          message: string;
+          prize_id: number;
           prize_name: string;
           prize_amount: number;
+          multiplier_applied: boolean;
+          multiplier_name: string;
+          multiplier_value: number;
+        }[];
+      };
+      reveal_prize: {
+        Args: {
+          p_attempt_id: number;
+        };
+        Returns: {
+          success: boolean;
+          message: string;
+          prize_id: number;
+          prize_name: string;
+          prize_amount: number;
+          points_added: boolean;
         }[];
       };
     };

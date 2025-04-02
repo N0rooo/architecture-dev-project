@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useCountdown } from '@/context/countdownProvider';
-import type { CashPrize } from '@/types/types';
+import type { Prize } from '@/types/types';
 import { Clock, Gift, Hourglass, Loader2, Trophy } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-export default function CashprizeView() {
+export default function FreePrizeView() {
   const [prize, setPrize] = useState<Omit<
-    CashPrize,
+    Prize,
     'created_at' | 'updated_at' | 'is_active' | 'probability'
   > | null>(null);
   const [loading, setLoading] = useState(false);
@@ -27,7 +27,7 @@ export default function CashprizeView() {
   const generatePrize = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/cashprize');
+      const res = await fetch('/api/prize');
 
       if (!res.ok) {
         throw new Error('Échec lors de la récupération du prix');
@@ -70,7 +70,7 @@ export default function CashprizeView() {
   };
 
   return (
-    <div className="container mx-auto flex max-w-2xl flex-col items-center gap-6 p-6">
+    <div className="flex w-full flex-col items-center gap-6 p-6">
       {countdown !== null && countdown > 0 && (
         <Card className="w-full bg-gradient-to-r from-slate-50 to-slate-100 shadow-md">
           <CardHeader className="pb-2">
@@ -112,7 +112,7 @@ export default function CashprizeView() {
                 <Gift className="mr-2 h-5 w-5 text-amber-500" />
                 <div>
                   <p className="text-xs text-slate-500">Type de ticket</p>
-                  <p className="text-sm font-medium">Gratuit</p>
+                  <p className="text-sm font-medium">Argent</p>
                 </div>
               </div>
               <div className="flex items-center rounded-lg bg-slate-100 p-3">

@@ -2,7 +2,7 @@
 
 import { CircleUserRound, LogOut, Menu } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -22,18 +22,41 @@ import { User } from '@supabase/supabase-js';
 import LogoutButton from './logoutButton';
 
 const navigation = [
-  { name: 'Home', href: '/' },
-  { name: 'Free Ticket', href: '/cashprize' },
+  { name: 'Accueil', href: '/' },
+  { name: 'Tickets gratuits', href: '/ticket-gratuit' },
+  { name: 'Mes tickets', href: '/mes-tickets' },
+  { name: 'Leaderboard', href: '/leaderboard' },
 ];
 
 export function Header({ user }: { user: User | null }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
   const getInitials = (email: string) => {
     if (!email) return '';
     const [firstPart] = email.split('@');
     return firstPart.charAt(0).toUpperCase();
+  };
+
+  const logout = async () => {
+    try {
+      const response = await fetch('/api/auth/signout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        router.push('/login');
+      } else {
+        // Handle non-ok response
+        alert('Logout failed. Please try again.');
+      }
+    } catch (error) {
+      // Handle network or other errors
+      alert('An error occurred. Please try again.');
+    }
   };
 
   return (
@@ -79,7 +102,7 @@ export function Header({ user }: { user: User | null }) {
                     <span>Profile</span>
                   </DropdownMenuItem>
                 </Link>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={logout}>
                   <LogOut />
                   <span>Log out</span>
                 </DropdownMenuItem>

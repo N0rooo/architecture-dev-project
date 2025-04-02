@@ -1,9 +1,10 @@
 import { createAppServerClient } from '@/supabase/server';
-import { Profile } from '@/types/types';
+import { Ticket } from '@/types/types';
 
-export const getUsersService = async (
-  limit = 10,
-): Promise<{ data: Profile | null; error: Error | null }> => {
+export const getTicketsService = async (): Promise<{
+  data: Ticket[] | null;
+  error: Error | null;
+}> => {
   // GET REAL DATA
   const supabase = await createAppServerClient();
 
@@ -15,7 +16,10 @@ export const getUsersService = async (
     };
   }
 
-  const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+  const { data, error } = await supabase
+    .from('user_prize_attempts')
+    .select('*, prize(*)')
+    .eq('user_id', user.id);
   if (error) {
     return {
       data: null,
