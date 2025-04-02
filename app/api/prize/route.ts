@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getCashPrizeService } from '@/services/cashprize/getCashPrize';
+import { getFreePrizeService } from '@/services/prize/getFreePrizeService';
 
 export async function GET() {
-  const { success, prize, error, timeRemaining } = await getCashPrizeService();
+  const { success, prize, error, timeRemaining } = await getFreePrizeService();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

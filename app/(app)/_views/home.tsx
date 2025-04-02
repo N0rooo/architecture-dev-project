@@ -5,42 +5,62 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useCountdown } from '@/context/countdownProvider';
 import { Clock, Gift, HandCoins, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { Profile } from '@/types/types';
+import { useProfile } from '@/context/profileProvider';
+import { premiumTickets } from '@/data/tickets';
 
-export default function HomeView() {
+export default function HomeView({ user }: { user: Profile }) {
   const { countdown, formatTime } = useCountdown();
   const router = useRouter();
   const timeToNextTicket = countdown ? Math.floor(countdown / 60) % 60 : 100;
-  const userPoints = 350;
+  const { profile, loading } = useProfile();
 
-  const premiumTickets = [
-    {
-      name: 'Argent',
-      price: 100,
-      minReward: 0,
-      maxReward: 200,
-      color: 'bg-slate-100',
-      textColor: 'text-slate-700',
-    },
-    {
-      name: 'Or',
-      price: 250,
-      minReward: 50,
-      maxReward: 500,
-      color: 'bg-amber-100',
-      textColor: 'text-amber-700',
-    },
-    {
-      name: 'Platine',
-      price: 500,
-      minReward: 100,
-      maxReward: 1000,
-      color: 'bg-cyan-100',
-      textColor: 'text-cyan-700',
-    },
-  ];
+  const userPoints = profile?.points;
+
+  if (loading) {
+    return (
+      <div className="container mx-auto max-w-4xl py-10">
+        <div className="mb-8 flex items-center justify-between">
+          <Skeleton className="h-10 w-48" />
+          <Skeleton className="h-12 w-32" />
+        </div>
+
+        <div className="mb-8 rounded-xl bg-slate-50 p-6">
+          <Skeleton className="mb-4 h-6 w-36" />
+          <Skeleton className="mb-3 h-4 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+
+        <div className="mt-6">
+          <div className="m-4">
+            <Skeleton className="mb-2 h-8 w-48" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="bg-slate-50">
+                <CardHeader>
+                  <Skeleton className="h-6 w-24" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="mb-2 h-8 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                </CardContent>
+                <CardFooter>
+                  <Skeleton className="h-10 w-full" />
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-4xl py-10">
@@ -115,8 +135,12 @@ export default function HomeView() {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-center">
-                <Button className="w-full" disabled={userPoints < ticket.price} variant="default">
-                  {userPoints >= ticket.price ? 'Acheter & Gratter' : 'Points insuffisants'}
+                <Button
+                  className="w-full"
+                  disabled={(userPoints ?? 0) < ticket.price}
+                  variant="default"
+                >
+                  {(userPoints ?? 0) >= ticket.price ? 'Acheter & Gratter' : 'Points insuffisants'}
                 </Button>
               </CardFooter>
             </Card>

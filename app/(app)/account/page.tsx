@@ -14,7 +14,9 @@ import {
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useCountdown } from '@/context/countdownProvider';
-import type { CashPrize } from '@/types/types';
+import { useProfile } from '@/context/profileProvider';
+import { formatDate } from '@/lib/utils';
+import type { Prize } from '@/types/types';
 import {
   Award,
   Calendar,
@@ -31,7 +33,7 @@ import { useEffect, useState } from 'react';
 
 export default function AccountPage() {
   const [prize, setPrize] = useState<Omit<
-    CashPrize,
+    Prize,
     'created_at' | 'updated_at' | 'is_active' | 'probability'
   > | null>(null);
   const [loading, setLoading] = useState(false);
@@ -40,15 +42,7 @@ export default function AccountPage() {
 
   const { countdown, formatTime, startCountdown } = useCountdown();
 
-  const user = {
-    name: 'Thomas Dupont',
-    email: 'thomas.dupont@exemple.fr',
-    avatar: '',
-    memberSince: '15 janvier 2025',
-    level: 7,
-    pointsBalance: 1250,
-    vip: true,
-  };
+  const { profile, user } = useProfile();
 
   const [userStats] = useState({
     totalWon: 2350,
@@ -116,21 +110,21 @@ export default function AccountPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
               <Avatar className="border-primary h-14 w-14 border-2">
-                <AvatarImage alt={user.name} src={user.avatar} />
-                <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                <AvatarImage alt={profile?.full_name ?? ''} src={profile?.avatar_url ?? ''} />
+                <AvatarFallback className="uppercase">
+                  {profile?.full_name?.charAt(0) ?? user?.email?.charAt(0)}
+                </AvatarFallback>
               </Avatar>
               <div>
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold">{user.name}</p>
-                  {user.vip && <Badge className="bg-amber-500">VIP</Badge>}
+                  <p className="font-semibold">{profile?.full_name ?? user?.email}</p>
                 </div>
                 <div className="text-muted-foreground flex items-center gap-1 text-xs">
                   <User className="h-3 w-3" />
-                  <span>Niveau {user.level}</span>
                 </div>
                 <div className="mt-1 flex items-center gap-1 text-sm">
                   <Wallet className="h-4 w-4 text-green-500" />
-                  <span className="font-medium">{user.pointsBalance} points</span>
+                  <span className="font-medium">{profile?.points} points</span>
                 </div>
               </div>
             </div>
@@ -276,7 +270,7 @@ export default function AccountPage() {
           <CardFooter className="flex justify-center border-t pt-4">
             <div className="text-muted-foreground flex items-center gap-2 text-sm">
               <Star className="h-4 w-4 text-amber-400" />
-              <span>Membre depuis: {user.memberSince}</span>
+              <span>Membre depuis: {formatDate(profile?.created_at ?? '')}</span>
             </div>
           </CardFooter>
         </Card>
