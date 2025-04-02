@@ -63,10 +63,10 @@ export default function AccountPage() {
     setIsPageLoaded(true);
   }, []);
 
-  const generatePrize = async () => {
+  const generateFreePrize = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/cashprize');
+      const res = await fetch('/api/ticket-gratuit');
 
       if (!res.ok) {
         throw new Error('Échec lors de la récupération du prix');
@@ -218,7 +218,7 @@ export default function AccountPage() {
                 className="mt-4 text-lg"
                 disabled={loading || (countdown !== null && countdown > 0)}
                 size="lg"
-                onClick={generatePrize}
+                onClick={generateFreePrize}
               >
                 {loading ? (
                   <>
