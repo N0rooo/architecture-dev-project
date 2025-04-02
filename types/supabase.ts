@@ -1,6 +1,47 @@
 export type Database = {
   public: {
     Tables: {
+      points_history: {
+        Row: {
+          amount: number;
+          created_at: string | null;
+          description: string | null;
+          id: number;
+          reference_id: number | null;
+          reference_type: string | null;
+          source: string;
+          user_id: string;
+        };
+        Insert: {
+          amount: number;
+          created_at?: string | null;
+          description?: string | null;
+          id?: number;
+          reference_id?: number | null;
+          reference_type?: string | null;
+          source: string;
+          user_id: string;
+        };
+        Update: {
+          amount?: number;
+          created_at?: string | null;
+          description?: string | null;
+          id?: number;
+          reference_id?: number | null;
+          reference_type?: string | null;
+          source?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'fk_user_id';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       prize: {
         Row: {
           created_at: string | null;
@@ -98,6 +139,7 @@ export type Database = {
           attempted_at: string | null;
           id: number;
           is_free: boolean;
+          is_revealed: boolean;
           prize_id: number | null;
           success: boolean;
           user_id: string;
@@ -106,6 +148,7 @@ export type Database = {
           attempted_at?: string | null;
           id?: number;
           is_free?: boolean;
+          is_revealed?: boolean;
           prize_id?: number | null;
           success?: boolean;
           user_id: string;
@@ -114,6 +157,7 @@ export type Database = {
           attempted_at?: string | null;
           id?: number;
           is_free?: boolean;
+          is_revealed?: boolean;
           prize_id?: number | null;
           success?: boolean;
           user_id?: string;
@@ -140,6 +184,17 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      add_points_history: {
+        Args: {
+          p_user_id: string;
+          p_amount: number;
+          p_source: string;
+          p_description?: string;
+          p_reference_id?: number;
+          p_reference_type?: string;
+        };
+        Returns: number;
+      };
       can_user_generate_free_prize: {
         Args: {
           p_user_id: string;
@@ -199,6 +254,19 @@ export type Database = {
           multiplier_applied: boolean;
           multiplier_name: string;
           multiplier_value: number;
+        }[];
+      };
+      reveal_prize: {
+        Args: {
+          p_attempt_id: number;
+        };
+        Returns: {
+          success: boolean;
+          message: string;
+          prize_id: number;
+          prize_name: string;
+          prize_amount: number;
+          points_added: boolean;
         }[];
       };
     };

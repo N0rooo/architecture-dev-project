@@ -7,7 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCountdown } from '@/context/countdownProvider';
-import { Clock, Gift, HandCoins, Sparkles } from 'lucide-react';
+import { Clock, Gift, HandCoins, Loader2, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Profile } from '@/types/types';
 import { useProfile } from '@/context/profileProvider';
@@ -30,21 +30,26 @@ export default function HomeView({ user }: { user: Profile }) {
   const { countdown, formatTime } = useCountdown();
   const router = useRouter();
   const timeToNextTicket = countdown ? Math.floor(countdown / 60) % 60 : 0;
-  const { profile, loading } = useProfile();
+  const { profile, loading, removePointsOnClientSide } = useProfile();
   const [isBuyingTicket, setIsBuyingTicket] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const userPoints = profile?.points;
 
-  const handleBuyTicket = async (ticketId: number) => {
+  const handleBuyTicket = async (ticketId: number, price: number) => {
     setIsBuyingTicket(true);
     try {
-      const response = await fetch(`/api/buy-ticket`, {
+      const response = await fetch(`/api/prize/buy-ticket`, {
         method: 'POST',
         body: JSON.stringify({ ticketId }),
       });
       const data = await response.json();
       if (data.success) {
-        toast.success('Ticket acheté avec succès');
+        toast.success('Ticket acheté avec succès', {
+          description: "Retrouvez votre ticket dans la section 'Mes tickets'",
+        });
+        removePointsOnClientSide(price);
+        setIsOpen(false);
       } else {
         toast.error("Erreur lors de l'achat du ticket");
       }
@@ -129,7 +134,7 @@ export default function HomeView({ user }: { user: Profile }) {
           variant={timeToNextTicket > 0 ? 'outline' : 'default'}
           onClick={() => {
             if (timeToNextTicket <= 0) {
-              router.push('/free-prize');
+              router.push('/ticket-gratuit');
             }
           }}
         >
@@ -169,7 +174,7 @@ export default function HomeView({ user }: { user: Profile }) {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-center">
-                <AlertDialog>
+                <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
                   <AlertDialogTrigger asChild>
                     <Button
                       className="w-full"
@@ -190,9 +195,19 @@ export default function HomeView({ user }: { user: Profile }) {
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Annuler</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => handleBuyTicket(ticket.id)}>
-                        Acheter pour {ticket.price} points
-                      </AlertDialogAction>
+                      <Button
+                        disabled={isBuyingTicket}
+                        onClick={() => handleBuyTicket(ticket.id, ticket.price)}
+                      >
+                        {isBuyingTicket && (
+                          <>
+                            <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                          </>
+                        )}
+                        {isBuyingTicket
+                          ? 'Achat en cours...'
+                          : `Acheter pour ${ticket.price} points`}
+                      </Button>
                     </AlertDialogFooter>
                   </AlertDialogContent>
                 </AlertDialog>
