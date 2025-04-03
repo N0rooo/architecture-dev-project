@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getLeaderboardService } from '@/services/leaderboard/getLeaderboardService';
 import { getAllUsersService } from '@/services/admin/users/getAllUsersService';
 
 export async function GET(request: Request) {
