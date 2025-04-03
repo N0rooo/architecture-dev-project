@@ -28,31 +28,36 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { PointsHistory, UserStats } from '@/types/types';
 
 export default function AccountView() {
   const { countdown, formatTime } = useCountdown();
   const { profile, user } = useProfile();
   const [, setIsPageLoaded] = useState(false);
+  const [pointsHistory, setPointsHistory] = useState<PointsHistory[]>([]);
   const router = useRouter();
   const timeToNextTicket = countdown ? Math.floor(countdown / 60) % 60 : 0;
+  const [userStats, setUserStats] = useState<UserStats | null>(null);
 
-  const [userStats] = useState({
-    totalWon: 2350,
-    scratched: 48,
-    biggestWin: 500,
-    currentStreak: 7,
-  });
+  const getPointsHistory = async () => {
+    const response = await fetch('/api/prize/history');
+    if (!response.ok) {
+      throw new Error('Failed to fetch points history');
+    }
+    const result = await response.json();
+    setPointsHistory(result.data);
+  };
 
-  const prizeHistory = [
-    { date: '30/03/2025', amount: 75, name: 'Prix Argent' },
-    { date: '29/03/2025', amount: 120, name: 'Prix Or' },
-    { date: '28/03/2025', amount: 50, name: 'Prix Bronze' },
-    { date: '27/03/2025', amount: 500, name: 'Prix Platine' },
-    { date: '26/03/2025', amount: 25, name: 'Prix Bronze' },
-  ];
+  const getUserStats = async () => {
+    const response = await fetch('/api/users/stats');
+    const result = await response.json();
+    setUserStats(result);
+  };
 
   useEffect(() => {
     setIsPageLoaded(true);
+    getPointsHistory();
+    getUserStats();
   }, []);
 
   return (
@@ -109,7 +114,7 @@ export default function AccountView() {
           <CardContent>
             <div className="flex items-center gap-2">
               <TrendingUp className="text-green-500" />
-              <span className="text-2xl font-bold">{userStats.totalWon}</span>
+              <span className="text-2xl font-bold">{userStats?.totalWon}</span>
             </div>
           </CardContent>
         </Card>
@@ -121,7 +126,7 @@ export default function AccountView() {
           <CardContent>
             <div className="flex items-center gap-2">
               <Gift className="text-purple-500" />
-              <span className="text-2xl font-bold">{userStats.scratched}</span>
+              <span className="text-2xl font-bold">{userStats?.scratched}</span>
             </div>
           </CardContent>
         </Card>
@@ -133,7 +138,7 @@ export default function AccountView() {
           <CardContent>
             <div className="flex items-center gap-2">
               <Trophy className="text-amber-500" />
-              <span className="text-2xl font-bold">{userStats.biggestWin}</span>
+              <span className="text-2xl font-bold">{userStats?.biggestWin}</span>
             </div>
           </CardContent>
         </Card>
@@ -145,7 +150,7 @@ export default function AccountView() {
           <CardContent>
             <div className="flex items-center gap-2">
               <Award className="text-blue-500" />
-              <span className="text-2xl font-bold">{userStats.currentStreak} j</span>
+              <span className="text-2xl font-bold">{userStats?.currentStreak} j</span>
             </div>
           </CardContent>
         </Card>
@@ -224,24 +229,23 @@ export default function AccountView() {
 
           <CardContent>
             <ul className="divide-y">
-              {prizeHistory.map((item, index) => (
-                <li key={index} className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="font-medium text-slate-800">{item.name}</p>
-                    <p className="text-xs text-slate-500">{item.date}</p>
-                  </div>
-                  <Badge className="bg-purple-100 text-purple-700">{item.amount} pts</Badge>
+              {pointsHistory.length === 0 ? (
+                <li className="flex items-center justify-between py-2">
+                  <p className="text-slate-500">Aucun gain récent</p>
                 </li>
-              ))}
+              ) : (
+                pointsHistory.map((item, index) => (
+                  <li key={index} className="flex items-center justify-between py-2">
+                    <div>
+                      <p className="font-medium text-slate-800">{item.description}</p>
+                      <p className="text-xs text-slate-500">{formatDate(item.created_at ?? '')}</p>
+                    </div>
+                    <Badge className="bg-purple-100 text-purple-700">{item.amount} pts</Badge>
+                  </li>
+                ))
+              )}
             </ul>
           </CardContent>
-
-          <CardFooter>
-            <Button className="w-full" variant="outline">
-              <ExternalLink className="mr-2 h-4 w-4" />
-              Voir Tout l'Historique
-            </Button>
-          </CardFooter>
         </Card>
       </div>
     </div>

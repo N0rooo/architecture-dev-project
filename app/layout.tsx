@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Boilerplate',
-  description: 'Boilerplate',
+  title: 'Orluck',
+  description: 'Orluck',
 };
 
 export default function RootLayout({

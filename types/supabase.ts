@@ -1,3 +1,5 @@
+import { UserStats } from './types';
+
 export type Database = {
   public: {
     Tables: {
@@ -179,6 +181,27 @@ export type Database = {
           },
         ];
       };
+      user_role: {
+        Row: {
+          created_at: string | null;
+          id: string;
+          role: Database['public']['Enums']['app_role'];
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string | null;
+          id?: string;
+          role?: Database['public']['Enums']['app_role'];
+          user_id: string;
+        };
+        Update: {
+          created_at?: string | null;
+          id?: string;
+          role?: Database['public']['Enums']['app_role'];
+          user_id?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -240,6 +263,12 @@ export type Database = {
           time_remaining: string;
         }[];
       };
+      get_user_stats: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: UserStats;
+      };
       purchase_ticket_and_generate_prize: {
         Args: {
           p_user_id: string;
@@ -271,7 +300,7 @@ export type Database = {
       };
     };
     Enums: {
-      [_ in never]: never;
+      app_role: 'admin' | 'user';
     };
     CompositeTypes: {
       [_ in never]: never;

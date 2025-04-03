@@ -16,12 +16,12 @@ export default async function layout({ children }: { children: React.ReactNode }
 
   return (
     <div className="relative flex min-h-screen flex-col">
-      <Header user={user} />
-      <section className="mt-11 flex-1 px-2">
-        <ProfileProvider user={user}>
+      <ProfileProvider user={user}>
+        <Header user={user} />
+        <section className="mt-11 flex-1 px-2">
           <MyTicketsProvider>{children}</MyTicketsProvider>
-        </ProfileProvider>
-      </section>
+        </section>
+      </ProfileProvider>
     </div>
   );
 }
