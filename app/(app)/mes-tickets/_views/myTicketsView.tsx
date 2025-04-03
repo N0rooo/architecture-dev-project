@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { PremiumTicket, premiumTickets } from '@/data/tickets';
+import { useProfile } from '@/context/profileProvider';
 
 export default function MyTicketsView() {
   // États et hooks
@@ -47,6 +48,7 @@ export default function MyTicketsView() {
   const [revealed, setRevealed] = useState(false);
   const [scratchKey, setScratchKey] = useState(0); // Clé unique pour forcer le re-rendu du composant ScratchToReveal
   const { countdown, formatTime } = useCountdown();
+  const { profile } = useProfile();
 
   // Réinitialiser l'état revealed quand le modal est fermé
   useEffect(() => {
@@ -247,7 +249,7 @@ export default function MyTicketsView() {
         </div>
         <div className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-100 p-3 shadow-sm">
           <HandCoins className="text-amber-500" />
-          <span className="font-semibold text-amber-700">{totalValue.toFixed(0)} points</span>
+          <span className="font-semibold text-amber-700">{profile?.points.toFixed(0)} points</span>
         </div>
       </div>
 
