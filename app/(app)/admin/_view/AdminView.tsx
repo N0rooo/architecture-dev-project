@@ -27,7 +27,7 @@ import { toast } from 'sonner';
 
 interface User {
   id: string;
-  name: string;
+  username: string;
   email: string;
   role?: string;
   createdAt?: string;
@@ -73,10 +73,8 @@ export default function AdminView() {
 
       await response.json();
 
-      // Mettre à jour la liste des utilisateurs
       setUsers(users.filter((user) => user.id !== id));
 
-      // Afficher une notification de succès
       toast.success('Utilisateur supprimé avec succès');
     } catch (err) {
       console.error(err);
@@ -138,7 +136,7 @@ export default function AdminView() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Nom</TableHead>
+                <TableHead>Nom d'utilisateur</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Rôle</TableHead>
                 <TableHead>Date d'inscription</TableHead>
@@ -148,7 +146,7 @@ export default function AdminView() {
             <TableBody>
               {users?.map((user) => (
                 <TableRow key={user.id}>
-                  <TableCell className="font-medium">{user.name}</TableCell>
+                  <TableCell className="font-medium">{user.username}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>{user.role || 'Utilisateur'}</TableCell>
                   <TableCell>

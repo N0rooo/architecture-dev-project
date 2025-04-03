@@ -41,6 +41,7 @@ export default function AuthForm() {
   const signupForm = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
+      username: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -92,11 +93,11 @@ export default function AuthForm() {
   return (
     <Card className="mx-auto w-full max-w-md">
       <CardHeader>
-        <CardTitle>{isSignUp ? 'Create an account' : 'Welcome back'}</CardTitle>
+        <CardTitle>{isSignUp ? 'Créer un compte' : 'Connexion'}</CardTitle>
         <CardDescription>
           {isSignUp
-            ? 'Enter your details to create a new account'
-            : 'Enter your credentials to sign in to your account'}
+            ? 'Entrez vos informations pour créer un nouveau compte'
+            : 'Entrez vos identifiants pour vous connecter à votre compte'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -107,6 +108,24 @@ export default function AuthForm() {
         )}
 
         <form className="space-y-4" onSubmit={activeForm.handleSubmit(onSubmit)}>
+          {isSignUp && (
+            <div className="space-y-2">
+              <Label htmlFor="username">Nom d'utilisateur</Label>
+              <Input
+                disabled={isLoading}
+                id="username"
+                type="text"
+                {...signupForm.register('username')}
+                className={cn(signupForm.formState.errors.username && 'border-red-500')}
+              />
+              {signupForm.formState.errors.username && (
+                <p className="text-sm text-red-500">
+                  {signupForm.formState.errors.username.message}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -122,7 +141,7 @@ export default function AuthForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Mot de passe</Label>
             <Input
               disabled={isLoading}
               id="password"
@@ -137,7 +156,7 @@ export default function AuthForm() {
 
           {isSignUp && (
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
               <Input
                 disabled={isLoading}
                 id="confirmPassword"
@@ -157,12 +176,12 @@ export default function AuthForm() {
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                {isSignUp ? 'Creating account...' : 'Signing in...'}
+                {isSignUp ? 'Création du compte...' : 'Connexion en cours...'}
               </>
             ) : isSignUp ? (
-              'Sign up'
+              "S'inscrire"
             ) : (
-              'Sign in'
+              'Se connecter'
             )}
           </Button>
         </form>
@@ -170,11 +189,11 @@ export default function AuthForm() {
       <CardFooter className="flex flex-col space-y-4">
         <div className="flex w-full items-center justify-between">
           <span className="text-muted-foreground text-sm">
-            {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+            {isSignUp ? 'Vous avez déjà un compte ?' : "Vous n'avez pas de compte ?"}
           </span>
           <div className="flex items-center space-x-2">
             <Button className="cursor-pointer" variant="link" onClick={toggleMode}>
-              {isSignUp ? 'Sign in' : 'Sign up'}
+              {isSignUp ? 'Se connecter' : "S'inscrire"}
             </Button>
           </div>
         </div>

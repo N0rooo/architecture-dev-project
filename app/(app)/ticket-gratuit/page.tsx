@@ -1,5 +1,4 @@
 import FreePrizeView from './_views/freePrizeView';
-import CashprizeView from './_views/freePrizeView';
 
 export default function page() {
   return (
