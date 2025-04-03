@@ -11,5 +11,15 @@ export type SignupFormValues = z.infer<typeof signupSchema>;
 export type Prize = Database['public']['Tables']['prize']['Row'];
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 export type Ticket = Database['public']['Tables']['user_prize_attempts']['Row'];
+export type PointsHistory = Database['public']['Tables']['points_history']['Row'];
 
+//COMBINED TYPES
 export type TicketWithPrize = Ticket & { prize: Prize };
+
+// CUSTOM TYPES
+export interface UserStats {
+  totalWon: number;
+  scratched: number;
+  biggestWin: number;
+  currentStreak: number;
+}

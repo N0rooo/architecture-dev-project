@@ -1,3 +1,5 @@
+import { UserStats } from './types';
+
 export type Database = {
   public: {
     Tables: {
@@ -239,6 +241,12 @@ export type Database = {
           next_time: string;
           time_remaining: string;
         }[];
+      };
+      get_user_stats: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: UserStats;
       };
       purchase_ticket_and_generate_prize: {
         Args: {
