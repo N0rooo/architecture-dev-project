@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { getUsersService } from '@/services/users/getUserService';
+import { getHistoryService } from '@/services/prize/getHistoryService';
 
 export async function GET() {
-  const { data, error, role } = await getUsersService();
+  const { data, error } = await getHistoryService();
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ data, role });
+  return NextResponse.json({ data });
 }
