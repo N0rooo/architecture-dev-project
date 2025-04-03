@@ -41,6 +41,7 @@ import { useCountdown } from '@/context/countdownProvider';
 
 // Utilisation des couleurs existantes des tickets premium
 import { premiumTickets } from '@/data/tickets';
+import { useProfile } from '@/context/profileProvider';
 
 export default function MyTicketsView() {
   const { tickets, loading, refreshTickets } = useMyTickets();
@@ -52,7 +53,7 @@ export default function MyTicketsView() {
   const [error, setError] = useState('');
   const [revealed, setRevealed] = useState(false);
   const { countdown, formatTime } = useCountdown();
-
+  const { profile } = useProfile();
   // Filtrer les tickets en fonction de la recherche et du filtre
   const filteredTickets = tickets
     ? tickets.filter((ticket) => {
@@ -196,7 +197,7 @@ export default function MyTicketsView() {
         </div>
         <div className="flex items-center gap-2 rounded-lg bg-slate-100 p-3">
           <HandCoins className="text-yellow-500" />
-          <span className="font-semibold">{totalValue.toFixed(0)} points</span>
+          <span className="font-semibold">{profile?.points.toFixed(0)} points</span>
         </div>
       </div>
 
