@@ -1,7 +1,15 @@
 'use client';
+import { ScratchToReveal } from '@/components/magicui/scratch-to-reveal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,40 +18,25 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCountdown } from '@/context/countdownProvider';
 import { useMyTickets } from '@/context/myTicketsProvider';
+import { TicketWithPrize } from '@/types/types';
 import {
   Calendar,
   Clock,
-  Eye,
-  EyeOff,
   Filter,
   Gift,
   HandCoins,
-  Search,
-  Ticket,
-  X,
-  Sparkles,
   Loader2,
+  Search,
+  Sparkles,
+  Ticket,
 } from 'lucide-react';
-import { useState } from 'react';
-import CountDownCase from '../_component/countDownCase';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from '@/components/ui/dialog';
-import { TicketWithPrize } from '@/types/types';
-import { ScratchToReveal } from '@/components/magicui/scratch-to-reveal';
-import { useCountdown } from '@/context/countdownProvider';
-
-// Utilisation des couleurs existantes des tickets premium
-import { premiumTickets } from '@/data/tickets';
-import { useProfile } from '@/context/profileProvider';
+import { useEffect, useState } from 'react';
+import { PremiumTicket, premiumTickets } from '@/data/tickets';
 
 export default function MyTicketsView() {
+  // États et hooks
   const { tickets, loading, refreshTickets } = useMyTickets();
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all'); // 'all', 'revealed', 'unrevealed'
@@ -52,32 +45,113 @@ export default function MyTicketsView() {
   const [revealedTicket, setRevealedTicket] = useState<TicketWithPrize | null>(null);
   const [error, setError] = useState('');
   const [revealed, setRevealed] = useState(false);
+  const [scratchKey, setScratchKey] = useState(0); // Clé unique pour forcer le re-rendu du composant ScratchToReveal
   const { countdown, formatTime } = useCountdown();
-  const { profile } = useProfile();
-  // Filtrer les tickets en fonction de la recherche et du filtre
-  const filteredTickets = tickets
-    ? tickets.filter((ticket) => {
-        const matchesSearch = ticket.is_revealed
-          ? ticket.prize.prize_name.toLowerCase().includes(search.toLowerCase())
-          : 'Non révélé'.toLowerCase().includes(search.toLowerCase());
-        const matchesFilter =
-          filter === 'all' ||
-          (filter === 'revealed' && ticket.is_revealed) ||
-          (filter === 'unrevealed' && !ticket.is_revealed);
-        return matchesSearch && matchesFilter;
-      })
-    : [];
 
-  // Calculer les statistiques
-  const totalTickets = tickets?.length || 0;
-  const revealedTickets = tickets?.filter((t) => t.is_revealed).length || 0;
-  const unrevealedTickets = tickets?.filter((t) => !t.is_revealed).length || 0;
-  const totalValue =
-    tickets
-      ?.filter((t) => t.is_revealed)
-      .reduce((sum, ticket) => sum + (ticket.prize.prize_amount || 0), 0) || 0;
+  // Réinitialiser l'état revealed quand le modal est fermé
+  useEffect(() => {
+    if (!isModalOpen) {
+      setRevealed(false);
+      setScratchKey(prev => prev + 1); // Incrémenter la clé pour forcer le re-rendu
+    }
+  }, [isModalOpen]);
 
-  // Formatter la date
+  // Fonction améliorée pour obtenir le style de ticket
+// Fonction améliorée pour obtenir le style de ticket
+const getTicketStyle = (
+  id: string | number,
+  isRevealed: boolean,
+  ticketType?: string | number,
+) => {
+  // Convertir l'ID en nombre si c'est une chaîne
+  const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+  
+  let ticketStyle: PremiumTicket;
+
+  if (isRevealed && ticketType !== undefined) {
+    // Pour les tickets révélés, utiliser la catégorie fournie
+    const categoryId = typeof ticketType === 'string'
+      ? premiumTickets.findIndex((t) => t.name === ticketType) + 1
+      : ticketType;
+
+    const foundTicket = premiumTickets.find((t) => t.id === categoryId);
+    ticketStyle = foundTicket || premiumTickets[0];
+  } else if (typeof ticketType === 'number') {
+    // Si un type de ticket spécifique est fourni (non révélé mais avec un type connu)
+    const foundTicket = premiumTickets.find((t) => t.id === ticketType);
+    ticketStyle = foundTicket || premiumTickets[0];
+  } else {
+    // Pour les tickets non révélés sans type spécifié,
+    // utiliser une méthode déterministe basée sur l'ID
+    const safeId = Math.max(1, numericId); // S'assurer que l'ID est au moins 1
+    const categoryId = ((safeId - 1) % premiumTickets.length) + 1;
+    ticketStyle = premiumTickets.find((t) => t.id === categoryId) || premiumTickets[0];
+  }
+
+  // Mapper les couleurs de fond des boutons
+  const buttonBgMap = {
+    'bg-slate-100': 'bg-slate-600 hover:bg-slate-700',
+    'bg-amber-100': 'bg-amber-600 hover:bg-amber-700',
+    'bg-cyan-100': 'bg-cyan-600 hover:bg-cyan-700',
+    'bg-purple-100': 'bg-purple-600 hover:bg-purple-700',
+  };
+
+  const buttonBg =
+    buttonBgMap[ticketStyle.color as keyof typeof buttonBgMap] ||
+    'bg-slate-600 hover:bg-slate-700';
+
+  return {
+    color: ticketStyle.color,
+    textColor: ticketStyle.textColor,
+    buttonBg: buttonBg,
+    name: ticketStyle.name,
+  };
+};
+
+  const getFilteredTickets = () => {
+    if (!tickets) return [];
+
+    return (
+      tickets
+        .filter((ticket) => {
+          const matchesSearch = ticket.is_revealed
+            ? ticket.prize.prize_name.toLowerCase().includes(search.toLowerCase())
+            : 'Non révélé'.toLowerCase().includes(search.toLowerCase());
+
+          const matchesFilter =
+            filter === 'all' ||
+            (filter === 'revealed' && ticket.is_revealed) ||
+            (filter === 'unrevealed' && !ticket.is_revealed);
+
+          return matchesSearch && matchesFilter;
+        })
+        .sort((a, b) => {
+          if (a.is_revealed !== b.is_revealed) {
+            return a.is_revealed ? 1 : -1;
+          }
+          return (
+            new Date(b.attempted_at || '').getTime() - new Date(a.attempted_at || '').getTime()
+          );
+        })
+    );
+  };
+
+  const filteredTickets = getFilteredTickets();
+
+  const getTicketStats = () => {
+    const totalTickets = tickets?.length || 0;
+    const revealedTickets = tickets?.filter((t) => t.is_revealed).length || 0;
+    const unrevealedTickets = totalTickets - revealedTickets;
+    const totalValue =
+      tickets
+        ?.filter((t) => t.is_revealed)
+        .reduce((sum, ticket) => sum + (ticket.prize.prize_amount || 0), 0) || 0;
+
+    return { totalTickets, revealedTickets, unrevealedTickets, totalValue };
+  };
+
+  const { totalTickets, revealedTickets, unrevealedTickets, totalValue } = getTicketStats();
+  
   const formatDate = (dateString: string | null | undefined): string => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -90,18 +164,14 @@ export default function MyTicketsView() {
     });
   };
 
-  // Fonction pour révéler un ticket
   const handleRevealTicket = async (ticketId: number) => {
     try {
       setRevealLoadingId(ticketId);
       setError('');
 
-      // Appel API pour révéler le ticket
       const response = await fetch(`/api/prize/reveal`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ attemptId: ticketId }),
       });
 
@@ -110,9 +180,15 @@ export default function MyTicketsView() {
         throw new Error(errorData.message || 'Erreur lors de la révélation du ticket');
       }
 
-      // Mise à jour des données et ouverture du modal
-      setRevealedTicket(tickets?.find((t) => t.id === ticketId) ?? null);
-      setIsModalOpen(true);
+      // Trouver le ticket et le définir comme révélé
+      const ticket = tickets?.find((t) => t.id === ticketId);
+      if (ticket) {
+        setRevealedTicket(ticket);
+        setIsModalOpen(true);
+        // Réinitialiser l'état revealed et incrémenter la clé pour forcer le re-rendu
+        setRevealed(false);
+        setScratchKey(prev => prev + 1);
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -130,33 +206,15 @@ export default function MyTicketsView() {
     setRevealed(true);
   };
 
-  // Attribuer des couleurs issues de premiumTickets à chaque ticket
-  const getTicketStyle = (id: string | number, isRevealed: boolean) => {
-    if (!isRevealed) {
-      return {
-        color: premiumTickets[1].color, // Or
-        textColor: premiumTickets[1].textColor,
-        buttonBg: 'bg-amber-600 hover:bg-amber-700',
-      };
-    }
-
-    const stringId = String(id);
-    const seed = stringId.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const index = seed % premiumTickets.length;
-
-    const ticketStyle = premiumTickets[index];
-    const buttonBgs = [
-      'bg-slate-600 hover:bg-slate-700',
-      'bg-amber-600 hover:bg-amber-700',
-      'bg-cyan-600 hover:bg-cyan-700',
-      'bg-purple-600 hover:bg-purple-700',
-    ];
-
-    return {
-      color: ticketStyle.color,
-      textColor: ticketStyle.textColor,
-      buttonBg: buttonBgs[index],
+  const getScratchGradientColors = (ticketName: string): [string, string, string] => {
+    const gradientMap: Record<string, [string, string, string]> = {
+      Argent: ['#CBD5E1', '#94A3B8', '#E2E8F0'],
+      Or: ['#FDE68A', '#F59E0B', '#FBBF24'],
+      Platine: ['#67E8F9', '#06B6D4', '#22D3EE'],
+      Mystère: ['#C4B5FD', '#8B5CF6', '#A78BFA'],
     };
+
+    return gradientMap[ticketName as keyof typeof gradientMap] || ['#A97CF8', '#F38CB8', '#FDCC92'];
   };
 
   if (loading) {
@@ -189,78 +247,52 @@ export default function MyTicketsView() {
 
   return (
     <div className="container mx-auto max-w-7xl py-10">
-      {/* Header with title and stats summary */}
       <div className="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Mes Tickets</h1>
           <p className="mt-2 text-slate-500">Retrouvez tous vos tickets et suivez vos gains</p>
         </div>
-        <div className="flex items-center gap-2 rounded-lg bg-slate-100 p-3">
-          <HandCoins className="text-yellow-500" />
-          <span className="font-semibold">{profile?.points.toFixed(0)} points</span>
+        <div className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-amber-50 to-yellow-100 p-3 shadow-sm">
+          <HandCoins className="text-amber-500" />
+          <span className="font-semibold text-amber-700">{totalValue.toFixed(0)} points</span>
         </div>
       </div>
 
-      {/* Statistics cards */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
-        <Card className={`${premiumTickets[0].color} shadow-sm`}>
-          <CardHeader className="pb-2">
-            <CardTitle className={`text-sm ${premiumTickets[0].textColor}`}>
-              Total tickets
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Ticket className={premiumTickets[0].textColor} />
-              <span className="text-2xl font-bold">{totalTickets}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          color={premiumTickets[0].color}
+          icon={<Ticket className={premiumTickets[0].textColor} />}
+          textColor={premiumTickets[0].textColor}
+          title="Total tickets"
+          value={totalTickets}
+        />
 
-        <Card className={`${premiumTickets[2].color} shadow-sm`}>
-          <CardHeader className="pb-2">
-            <CardTitle className={`text-sm ${premiumTickets[2].textColor}`}>
-              Tickets révélés
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Eye className={premiumTickets[2].textColor} />
-              <span className="text-2xl font-bold">{revealedTickets}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          color={premiumTickets[2].color}
+          icon={<Gift className={premiumTickets[2].textColor} />}
+          textColor={premiumTickets[2].textColor}
+          title="Tickets révélés"
+          value={revealedTickets}
+        />
 
-        <Card className={`${premiumTickets[1].color} shadow-sm`}>
-          <CardHeader className="pb-2">
-            <CardTitle className={`text-sm ${premiumTickets[1].textColor}`}>À révéler</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <EyeOff className={premiumTickets[1].textColor} />
-              <span className="text-2xl font-bold">{unrevealedTickets}</span>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          color={premiumTickets[1].color}
+          icon={<Sparkles className={premiumTickets[1].textColor} />}
+          textColor={premiumTickets[1].textColor}
+          title="À révéler"
+          value={unrevealedTickets}
+        />
 
-        <Card className={`${premiumTickets[3].color} shadow-sm`}>
-          <CardHeader className="pb-2">
-            <CardTitle className={`text-sm ${premiumTickets[3].textColor}`}>
-              Prochain ticket
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-2">
-              <Gift className={premiumTickets[3].textColor} />
-              <span className="text-2xl font-bold">
-                {countdown !== null ? formatTime(countdown) : '--:--:--'}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+        <StatCard
+          color={premiumTickets[3].color}
+          icon={<Clock className={premiumTickets[3].textColor} />}
+          textColor={premiumTickets[3].textColor}
+          title="Prochain ticket"
+          value={countdown !== null ? formatTime(countdown) : '--:--:--'}
+          isValueString
+        />
       </div>
 
-      {/* Search and filter toolbar */}
       <div className="mb-8 flex flex-col gap-4 rounded-xl bg-slate-50 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="relative max-w-xs">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -296,159 +328,138 @@ export default function MyTicketsView() {
         </div>
       </div>
 
-      {/* Tickets grid */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-        {filteredTickets?.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
-            <div className="rounded-full bg-slate-100 p-6">
-              <HandCoins className="h-12 w-12 text-slate-400" />
-            </div>
-            <p className="mt-6 text-xl font-semibold text-slate-700">Aucun ticket trouvé</p>
-            <p className="mt-2 text-sm text-slate-500">
-              {search || filter !== 'all'
-                ? 'Essayez de modifier vos critères de recherche ou de filtre'
-                : 'Commencez par obtenir des tickets gratuits ou premium'}
-            </p>
-            {(search || filter !== 'all') && (
-              <Button
-                className="mt-4"
-                variant="outline"
-                onClick={() => {
-                  setSearch('');
-                  setFilter('all');
-                }}
-              >
-                Réinitialiser les filtres
-              </Button>
-            )}
-          </div>
+        {filteredTickets.length === 0 ? (
+          <EmptyTicketsState
+            hasFilters={search !== '' || filter !== 'all'}
+            onResetFilters={() => {
+              setSearch('');
+              setFilter('all');
+            }}
+          />
         ) : (
           filteredTickets.map((ticket) => {
-            const ticketStyle = getTicketStyle(ticket.id, ticket.is_revealed);
-
+            const ticketCategory = ticket.is_revealed
+              ? (ticket.prize.prize_category ?? undefined)
+              : ((Number(ticket.id) % premiumTickets.length) + 1);
+          
+            const ticketStyle = getTicketStyle(ticket.id, ticket.is_revealed, ticketCategory);
+          
             return (
-              <Card
+              <TicketCard
                 key={ticket.id}
-                className={`${ticketStyle.color} transition-all hover:shadow-lg`}
-              >
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className={`${ticketStyle.textColor} text-xl`}>
-                      {ticket.is_revealed ? ticket.prize.prize_name : 'Ticket mystère'}
-                    </CardTitle>
-                    {ticket.is_revealed ? (
-                      <Eye className={`${ticketStyle.textColor} h-5 w-5`} />
-                    ) : (
-                      <Sparkles className={`${ticketStyle.textColor} h-5 w-5`} />
-                    )}
-                  </div>
-                </CardHeader>
-
-                <CardContent>
-                  {ticket.is_revealed ? (
-                    <div className="flex flex-col gap-2">
-                      <div
-                        className={`flex items-center justify-center gap-2 text-xl font-bold ${ticketStyle.textColor}`}
-                      >
-                        {ticket.prize.prize_amount?.toFixed(2)} points
-                      </div>
-                      <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span>{formatDate(ticket.attempted_at)}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          <span>ID: {ticket.id.toString().substring(0, 8)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center gap-3 py-4">
-                      <div className={`rounded-full p-4 ${ticketStyle.color}`}>
-                        <Gift className={`h-8 w-8 ${ticketStyle.textColor} animate-pulse`} />
-                      </div>
-                      <p className="text-center text-sm">
-                        Ce ticket contient une surprise !<br />
-                        Révélez-le pour voir votre gain.
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-
-                <CardFooter className="flex justify-center">
-                  {!ticket.is_revealed && (
-                    <Button
-                      className={`w-full ${ticketStyle.buttonBg}`}
-                      disabled={revealLoadingId === ticket.id}
-                      variant="default"
-                      onClick={() => handleRevealTicket(ticket.id)}
-                    >
-                      {revealLoadingId === ticket.id ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Révélation en cours...
-                        </>
-                      ) : (
-                        'Révéler maintenant'
-                      )}
-                    </Button>
-                  )}
-                </CardFooter>
-              </Card>
+                formatDate={formatDate}
+                isRevealing={revealLoadingId === ticket.id}
+                ticket={ticket}
+                ticketStyle={ticketStyle}
+                onReveal={() => handleRevealTicket(ticket.id)}
+              />
             );
           })
         )}
       </div>
+      <Dialog open={isModalOpen} onOpenChange={(open) => {
+        if (!open) {
+          // Réinitialiser les états lors de la fermeture du modal
+          setRevealed(false);
+          setRevealedTicket(null);
+          setScratchKey(prev => prev + 1);
+        }
+        setIsModalOpen(open);
+      }}>
+        {revealedTicket &&
+          (() => {
+            // Déterminer correctement le type de ticket
+            const ticketCategory = revealedTicket.is_revealed
+              ? (revealedTicket.prize.prize_category ?? undefined)
+              : revealedTicket.ticket_category || ((Number(revealedTicket.id) % premiumTickets.length) + 1);
+            
+            const ticketTypeName = typeof ticketCategory === 'number'
+              ? premiumTickets.find((t) => t.id === ticketCategory)?.name
+              : undefined;
 
-      {/* Dialog de révélation */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="text-center text-2xl">
-              {revealed ? revealedTicket?.prize.prize_name : '???'}
-            </DialogTitle>
-            <DialogDescription className="text-center">
-              Grattez pour découvrir votre gain !
-            </DialogDescription>
-          </DialogHeader>
+            const ticketStyle = getTicketStyle(
+              revealedTicket.id,
+              revealedTicket.is_revealed,
+              ticketCategory
+            );
+            
+            const gradientColors = getScratchGradientColors(ticketStyle.name);
 
-          {revealedTicket && (
-            <div className="flex justify-center p-4">
-              <ScratchToReveal
-                className="flex items-center justify-center overflow-hidden rounded-2xl border-2 bg-gray-100 shadow-lg"
-                gradientColors={['#A97CF8', '#F38CB8', '#FDCC92']}
-                height={300}
-                minScratchPercentage={30}
-                width={300}
-                onComplete={handleScratchComplete}
+            return (
+              <DialogContent
+                className={`border-4 sm:max-w-[600px] ${ticketStyle.color.replace('bg-', 'border-')} ${ticketStyle.color} shadow-xl`}
               >
-                <div className="flex flex-col items-center justify-center p-4 text-center">
-                  <h2 className="mb-2 text-3xl font-bold">Félicitations !</h2>
-                  <p className="mb-4 text-xl">Vous avez gagné :</p>
-                  <div className="text-primary mb-2 text-5xl font-bold">
-                    {revealedTicket.prize.prize_amount.toFixed(2)} points
-                  </div>
-                  <p className="text-lg">{revealedTicket.prize.prize_name}</p>
-                  {revealed && (
-                    <Button
-                      className="mt-6"
-                      variant="outline"
-                      onClick={() => {
-                        setIsModalOpen(false);
-                        setRevealed(false);
-                        setRevealedTicket(null);
-                      }}
-                    >
-                      Collecter & Continuer
-                    </Button>
-                  )}
-                </div>
-              </ScratchToReveal>
-            </div>
-          )}
+                <DialogHeader className={ticketStyle.color}>
+                  <DialogTitle
+                    className={`text-center text-2xl font-bold ${ticketStyle.textColor}`}
+                  >
+                    {revealed ? revealedTicket.prize.prize_name : `Ticket ${ticketStyle.name}`}
+                  </DialogTitle>
+                  <DialogDescription
+                    className={`text-center font-medium ${ticketStyle.textColor.replace('text-', 'text-opacity-80 text-')}`}
+                  >
+                    {revealed
+                      ? 'Félicitations pour votre gain !'
+                      : 'Grattez pour découvrir votre gain !'}
+                  </DialogDescription>
+                </DialogHeader>
 
-          {error && (
+                <div className="flex justify-center p-4">
+                  {/* Ajouter la clé pour forcer le re-rendu */}
+                  <ScratchToReveal
+                    key={scratchKey}
+                    className={`flex items-center justify-center overflow-hidden rounded-2xl ${ticketStyle.color} shadow-lg`}
+                    gradientColors={gradientColors}
+                    height={300}
+                    minScratchPercentage={25}
+                    width={300}
+                    onComplete={handleScratchComplete}
+                  >
+                    <div className="flex h-full w-full flex-col items-center justify-center bg-white p-4 text-center">
+                      <div className={`mb-2 inline-block rounded-full p-3 ${ticketStyle.color}`}>
+                        <Sparkles className={`h-8 w-8 ${ticketStyle.textColor}`} />
+                      </div>
+                      <h2 className="mb-1 text-2xl font-bold text-slate-800">Félicitations !</h2>
+                      <div className={`mt-2 mb-1 text-4xl font-bold ${ticketStyle.textColor}`}>
+                        {revealedTicket.prize.prize_amount.toFixed(2)} points
+                      </div>
+                      <p className="text-md text-slate-600">{revealedTicket.prize.prize_name}</p>
+                      {revealed && (
+                        <Button
+                          className={`mt-4 ${ticketStyle.buttonBg}`}
+                          onClick={() => {
+                            setIsModalOpen(false);
+                            setRevealed(false);
+                            setRevealedTicket(null);
+                            setScratchKey(prev => prev + 1);
+                          }}
+                        >
+                          Collecter
+                        </Button>
+                      )}
+                    </div>
+                  </ScratchToReveal>
+                </div>
+
+                <div className="mt-4 text-center">
+                  <p className={`text-sm ${ticketStyle.textColor}`}>
+                    {revealed
+                      ? 'Vos points ont été ajoutés à votre compte'
+                      : 'Grattez la carte avec votre doigt ou votre souris'}
+                  </p>
+                </div>
+              </DialogContent>
+            );
+          })()}
+
+        {error && (
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-center text-2xl text-red-600">
+                Erreur de révélation
+              </DialogTitle>
+            </DialogHeader>
             <div className="text-center text-red-500">
               <p>{error}</p>
               <Button
@@ -462,9 +473,187 @@ export default function MyTicketsView() {
                 Fermer
               </Button>
             </div>
-          )}
-        </DialogContent>
+          </DialogContent>
+        )}
       </Dialog>
+    </div>
+  );
+}
+
+interface StatCardProps {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  color: string;
+  textColor: string;
+  isValueString?: boolean;
+}
+
+function StatCard({ title, value, icon, color, textColor, isValueString = false }: StatCardProps) {
+  return (
+    <Card className={`${color} shadow-md transition-all hover:shadow-lg`}>
+      <CardHeader className="pb-2">
+        <CardTitle className={`text-sm font-medium ${textColor}`}>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex items-center gap-2">
+          {icon}
+          <span className={`text-2xl font-bold ${textColor}`}>{value}</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface EmptyTicketsStateProps {
+  hasFilters: boolean;
+  onResetFilters: () => void;
+}
+
+function EmptyTicketsState({ hasFilters, onResetFilters }: EmptyTicketsStateProps) {
+  return (
+    <div className="col-span-full flex flex-col items-center justify-center py-16 text-center">
+      <div className="rounded-full bg-slate-100 p-6">
+        <HandCoins className="h-12 w-12 text-slate-400" />
+      </div>
+      <p className="mt-6 text-xl font-semibold text-slate-700">Aucun ticket trouvé</p>
+      <p className="mt-2 text-sm text-slate-500">
+        {hasFilters
+          ? 'Essayez de modifier vos critères de recherche ou de filtre'
+          : 'Commencez par obtenir des tickets gratuits ou premium'}
+      </p>
+      {hasFilters && (
+        <Button className="mt-4" variant="outline" onClick={onResetFilters}>
+          Réinitialiser les filtres
+        </Button>
+      )}
+    </div>
+  );
+}
+
+interface TicketCardProps {
+  ticket: TicketWithPrize;
+  ticketStyle: {
+    color: string;
+    textColor: string;
+    buttonBg: string;
+    name: string;
+  };
+  formatDate: (date: string | null | undefined) => string;
+  isRevealing: boolean;
+  onReveal: () => void;
+}
+
+function TicketCard({ ticket, ticketStyle, formatDate, isRevealing, onReveal }: TicketCardProps) {
+  return (
+    <Card
+      className={`${ticketStyle.color} transition-all hover:translate-y-[-4px] hover:shadow-lg`}
+    >
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardTitle className={`${ticketStyle.textColor} text-xl`}>
+            {ticket.is_revealed ? ticket.prize.prize_name : `Ticket ${ticketStyle.name}`}
+          </CardTitle>
+          <Badge
+            className={
+              ticket.is_revealed
+                ? `bg-green-100 text-green-700`
+                : `${ticketStyle.color.replace('bg-', 'bg-opacity-80 bg-')} ${ticketStyle.textColor}`
+            }
+          >
+            {ticket.is_revealed ? 'Révélé' : 'À gratter'}
+          </Badge>
+        </div>
+      </CardHeader>
+
+      <CardContent>
+        {ticket.is_revealed ? (
+          <RevealedTicketContent
+            formatDate={formatDate}
+            ticket={ticket}
+            ticketStyle={ticketStyle}
+          />
+        ) : (
+          <UnrevealedTicketContent ticketStyle={ticketStyle} />
+        )}
+      </CardContent>
+
+      <CardFooter className="flex justify-center">
+        {!ticket.is_revealed && (
+          <Button
+            className={`w-full ${ticketStyle.buttonBg}`}
+            disabled={isRevealing}
+            variant="default"
+            onClick={onReveal}
+          >
+            {isRevealing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Révélation en cours...
+              </>
+            ) : (
+              'Révéler maintenant'
+            )}
+          </Button>
+        )}
+      </CardFooter>
+    </Card>
+  );
+}
+
+interface RevealedTicketContentProps {
+  ticket: TicketWithPrize;
+  ticketStyle: {
+    color: string;
+    textColor: string;
+    buttonBg: string;
+    name: string;
+  };
+  formatDate: (date: string | null | undefined) => string;
+}
+
+function RevealedTicketContent({ ticket, ticketStyle, formatDate }: RevealedTicketContentProps) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div
+        className={`flex items-center justify-center gap-2 rounded-lg ${ticketStyle.color.replace('bg-', 'bg-opacity-80 bg-')} p-4 text-xl font-bold ${ticketStyle.textColor}`}
+      >
+        <Sparkles className="h-5 w-5" />
+        <span>{ticket.prize.prize_amount.toFixed(2)} points</span>
+      </div>
+      <div className="mt-2 flex items-center justify-between text-xs text-slate-600">
+        <div className="flex items-center gap-1">
+          <Calendar className="h-3 w-3" />
+          <span>{formatDate(ticket.attempted_at)}</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <Ticket className="h-3 w-3" />
+          <span>ID: {ticket.id.toString().substring(0, 8)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface UnrevealedTicketContentProps {
+  ticketStyle: {
+    color: string;
+    textColor: string;
+    buttonBg: string;
+    name: string;
+  };
+}
+
+function UnrevealedTicketContent({ ticketStyle }: UnrevealedTicketContentProps) {
+  return (
+    <div className="flex flex-col items-center gap-3 py-4">
+      <div className={`rounded-full ${ticketStyle.color.replace('bg-', 'bg-opacity-80 bg-')} p-4`}>
+        <Gift className={`h-8 w-8 ${ticketStyle.textColor} animate-pulse`} />
+      </div>
+      <p className={`text-center text-sm ${ticketStyle.textColor}`}>
+        Ce ticket contient une surprise !<br />
+        Révélez-le pour voir votre gain.
+      </p>
     </div>
   );
 }

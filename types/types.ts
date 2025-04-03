@@ -13,8 +13,11 @@ export type Profile = Database['public']['Tables']['profiles']['Row'];
 export type Ticket = Database['public']['Tables']['user_prize_attempts']['Row'];
 export type PointsHistory = Database['public']['Tables']['points_history']['Row'];
 
+export type TicketWithPrize = Ticket & {
+  prize: Prize;
+  ticket_category?: number;
+};
 //COMBINED TYPES
-export type TicketWithPrize = Ticket & { prize: Prize };
 
 // CUSTOM TYPES
 export interface UserStats {
