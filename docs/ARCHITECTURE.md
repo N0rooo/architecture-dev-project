@@ -9,32 +9,32 @@ Ce document fournit une vue d'ensemble de l'architecture du système de tickets 
 ```mermaid
 classDiagram
     class TicketService {
-        +buyTicket(categoryId: number) Promise<{success: boolean, error: Error | null}>
-        +scratchTicket(ticketId: string) Promise<{prize: Prize | null, error: Error | null}>
-        +getTickets() Promise<{data: Ticket[], error: Error | null}>
+        +buyTicket(categoryId)
+        +scratchTicket(ticketId)
+        +getTickets()
     }
 
     class PointsService {
-        +addPoints(points: number) Promise<{success: boolean, error: Error | null}>
-        +getPoints() Promise<{points: number, error: Error | null}>
-        +getHistory() Promise<{data: PointHistory[], error: Error | null}>
+        +addPoints(points)
+        +getPoints()
+        +getHistory()
     }
 
     class LeaderboardService {
-        +getLeaderboard() Promise<{data: LeaderboardEntry[], error: Error | null}>
-        +getUserRank() Promise<{rank: number, error: Error | null}>
+        +getLeaderboard()
+        +getUserRank()
     }
 
     class AuthServices {
-        +loginService(email: string, password: string) Promise<{data: any, error: Error | null}>
-        +signupService(email: string, password: string, username: string) Promise<{data: any, error: Error | null}>
-        +logoutService() Promise<{error: Error | null}>
+        +loginService(email, password)
+        +signupService(email, password, username)
+        +logoutService()
     }
 
     class AdminService {
-        +getAllUsers() Promise<{data: Profile[] | null, error: Error | null}>
-        +deleteUser(id: string) Promise<{success: boolean, error: Error | null}>
-        +managePrizes() Promise<{success: boolean, error: Error | null}>
+        +getAllUsers()
+        +deleteUser(id)
+        +managePrizes()
     }
 
     class Profile {
@@ -72,9 +72,9 @@ classDiagram
     }
 
     class SupabaseClient {
-        +auth: AuthClient
-        +from(): DatabaseClient
-        +rpc(): RPCClient
+        +auth
+        +from()
+        +rpc()
     }
 
     SupabaseClient --> TicketService : uses

@@ -42,6 +42,10 @@ Une application web moderne construite avec Next.js 15, React 19, et Supabase, o
   - Tests avec Jest
   - Configuration ESLint et Prettier
   - Hooks Git avec Husky
+  - Pour visualiser le diagramme d'architecture :
+    - Sur GitHub : Le diagramme est automatiquement rendu
+    - Dans VS Code : Installer l'extension "Markdown Preview Mermaid Support"
+    - En ligne : Copier le code du diagramme sur [Mermaid Live Editor](https://mermaid.live)
   - Génération automatique des types Supabase
 
 ## Documentation du Projet
