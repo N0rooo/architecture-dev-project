@@ -3,13 +3,16 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { email, password, username } = await req.json();
 
-    if (!email || !password) {
-      return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
+    if (!email || !password || !username) {
+      return NextResponse.json(
+        { error: 'Email, password and username are required' },
+        { status: 400 },
+      );
     }
 
-    const { data, error } = await signupService(email, password);
+    const { data, error } = await signupService(email, password, username);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
