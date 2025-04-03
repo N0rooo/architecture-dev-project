@@ -52,88 +52,81 @@ export default function MyTicketsView() {
   useEffect(() => {
     if (!isModalOpen) {
       setRevealed(false);
-      setScratchKey(prev => prev + 1); // Incrémenter la clé pour forcer le re-rendu
+      setScratchKey((prev) => prev + 1); // Incrémenter la clé pour forcer le re-rendu
     }
   }, [isModalOpen]);
 
-  // Fonction améliorée pour obtenir le style de ticket
-// Fonction améliorée pour obtenir le style de ticket
-const getTicketStyle = (
-  id: string | number,
-  isRevealed: boolean,
-  ticketType?: string | number,
-) => {
-  // Convertir l'ID en nombre si c'est une chaîne
-  const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
-  
-  let ticketStyle: PremiumTicket;
-
-  if (isRevealed && ticketType !== undefined) {
-    // Pour les tickets révélés, utiliser la catégorie fournie
-    const categoryId = typeof ticketType === 'string'
-      ? premiumTickets.findIndex((t) => t.name === ticketType) + 1
-      : ticketType;
-
-    const foundTicket = premiumTickets.find((t) => t.id === categoryId);
-    ticketStyle = foundTicket || premiumTickets[0];
-  } else if (typeof ticketType === 'number') {
-    // Si un type de ticket spécifique est fourni (non révélé mais avec un type connu)
-    const foundTicket = premiumTickets.find((t) => t.id === ticketType);
-    ticketStyle = foundTicket || premiumTickets[0];
-  } else {
-    // Pour les tickets non révélés sans type spécifié,
-    // utiliser une méthode déterministe basée sur l'ID
-    const safeId = Math.max(1, numericId); // S'assurer que l'ID est au moins 1
-    const categoryId = ((safeId - 1) % premiumTickets.length) + 1;
-    ticketStyle = premiumTickets.find((t) => t.id === categoryId) || premiumTickets[0];
-  }
-
-  // Mapper les couleurs de fond des boutons
-  const buttonBgMap = {
-    'bg-slate-100': 'bg-slate-600 hover:bg-slate-700',
-    'bg-amber-100': 'bg-amber-600 hover:bg-amber-700',
-    'bg-cyan-100': 'bg-cyan-600 hover:bg-cyan-700',
-    'bg-purple-100': 'bg-purple-600 hover:bg-purple-700',
+  // Fonction pour extraire le nom de catégorie (Argent, Or, Platine, Mystère) à partir du nom du prix
+  const getCategoryFromPrizeName = (prizeName: string): string => {
+    if (prizeName.includes('Argent')) return 'Argent';
+    if (prizeName.includes('Or')) return 'Or';
+    if (prizeName.includes('Platine')) return 'Platine';
+    if (prizeName.includes('Mystère')) return 'Mystère';
+    return 'Argent'; // Valeur par défaut
   };
 
-  const buttonBg =
-    buttonBgMap[ticketStyle.color as keyof typeof buttonBgMap] ||
-    'bg-slate-600 hover:bg-slate-700';
+  // Fonction corrigée pour obtenir le style de ticket
+  const getTicketStyle = (id: string | number, isRevealed: boolean, ticket: TicketWithPrize) => {
+    let categoryName: string;
 
-  return {
-    color: ticketStyle.color,
-    textColor: ticketStyle.textColor,
-    buttonBg: buttonBg,
-    name: ticketStyle.name,
+    // Déterminer la catégorie du ticket
+    if (isRevealed) {
+      // Pour les tickets révélés, utiliser la catégorie du prix
+      categoryName = ticket.prize.prize_category
+        ? typeof ticket.prize.prize_category === 'string'
+          ? ticket.prize.prize_category
+          : premiumTickets.find((t) => t.id === ticket.prize.prize_category)?.name || 'Argent'
+        : getCategoryFromPrizeName(ticket.prize.prize_name);
+    } else {
+      // Pour les tickets non révélés, utiliser directement le nom de la catégorie
+      categoryName = getCategoryFromPrizeName(ticket.prize.prize_name);
+    }
+
+    // Trouver le ticket correspondant au nom de la catégorie
+    const ticketStyle = premiumTickets.find((t) => t.name === categoryName) || premiumTickets[0];
+
+    // Mapper les couleurs de fond des boutons
+    const buttonBgMap = {
+      'bg-slate-100': 'bg-slate-600 hover:bg-slate-700',
+      'bg-amber-100': 'bg-amber-600 hover:bg-amber-700',
+      'bg-cyan-100': 'bg-cyan-600 hover:bg-cyan-700',
+      'bg-purple-100': 'bg-purple-600 hover:bg-purple-700',
+    };
+
+    const buttonBg =
+      buttonBgMap[ticketStyle.color as keyof typeof buttonBgMap] ||
+      'bg-slate-600 hover:bg-slate-700';
+
+    return {
+      color: ticketStyle.color,
+      textColor: ticketStyle.textColor,
+      buttonBg: buttonBg,
+      name: ticketStyle.name,
+    };
   };
-};
 
   const getFilteredTickets = () => {
     if (!tickets) return [];
 
-    return (
-      tickets
-        .filter((ticket) => {
-          const matchesSearch = ticket.is_revealed
-            ? ticket.prize.prize_name.toLowerCase().includes(search.toLowerCase())
-            : 'Non révélé'.toLowerCase().includes(search.toLowerCase());
+    return tickets
+      .filter((ticket) => {
+        const matchesSearch = ticket.is_revealed
+          ? ticket.prize.prize_name.toLowerCase().includes(search.toLowerCase())
+          : 'Non révélé'.toLowerCase().includes(search.toLowerCase());
 
-          const matchesFilter =
-            filter === 'all' ||
-            (filter === 'revealed' && ticket.is_revealed) ||
-            (filter === 'unrevealed' && !ticket.is_revealed);
+        const matchesFilter =
+          filter === 'all' ||
+          (filter === 'revealed' && ticket.is_revealed) ||
+          (filter === 'unrevealed' && !ticket.is_revealed);
 
-          return matchesSearch && matchesFilter;
-        })
-        .sort((a, b) => {
-          if (a.is_revealed !== b.is_revealed) {
-            return a.is_revealed ? 1 : -1;
-          }
-          return (
-            new Date(b.attempted_at || '').getTime() - new Date(a.attempted_at || '').getTime()
-          );
-        })
-    );
+        return matchesSearch && matchesFilter;
+      })
+      .sort((a, b) => {
+        if (a.is_revealed !== b.is_revealed) {
+          return a.is_revealed ? 1 : -1;
+        }
+        return new Date(b.attempted_at || '').getTime() - new Date(a.attempted_at || '').getTime();
+      });
   };
 
   const filteredTickets = getFilteredTickets();
@@ -151,7 +144,7 @@ const getTicketStyle = (
   };
 
   const { totalTickets, revealedTickets, unrevealedTickets, totalValue } = getTicketStats();
-  
+
   const formatDate = (dateString: string | null | undefined): string => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -187,7 +180,7 @@ const getTicketStyle = (
         setIsModalOpen(true);
         // Réinitialiser l'état revealed et incrémenter la clé pour forcer le re-rendu
         setRevealed(false);
-        setScratchKey(prev => prev + 1);
+        setScratchKey((prev) => prev + 1);
       }
     } catch (err) {
       setError(
@@ -339,12 +332,9 @@ const getTicketStyle = (
           />
         ) : (
           filteredTickets.map((ticket) => {
-            const ticketCategory = ticket.is_revealed
-              ? (ticket.prize.prize_category ?? undefined)
-              : ((Number(ticket.id) % premiumTickets.length) + 1);
-          
-            const ticketStyle = getTicketStyle(ticket.id, ticket.is_revealed, ticketCategory);
-          
+            // Utiliser directement le ticket pour obtenir le style
+            const ticketStyle = getTicketStyle(ticket.id, ticket.is_revealed, ticket);
+
             return (
               <TicketCard
                 key={ticket.id}
@@ -358,32 +348,26 @@ const getTicketStyle = (
           })
         )}
       </div>
-      <Dialog open={isModalOpen} onOpenChange={(open) => {
-        if (!open) {
-          // Réinitialiser les états lors de la fermeture du modal
-          setRevealed(false);
-          setRevealedTicket(null);
-          setScratchKey(prev => prev + 1);
-        }
-        setIsModalOpen(open);
-      }}>
+      <Dialog
+        open={isModalOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRevealed(false);
+            setRevealedTicket(null);
+            setScratchKey((prev) => prev + 1);
+          }
+          setIsModalOpen(open);
+        }}
+      >
         {revealedTicket &&
           (() => {
-            // Déterminer correctement le type de ticket
-            const ticketCategory = revealedTicket.is_revealed
-              ? (revealedTicket.prize.prize_category ?? undefined)
-              : revealedTicket.ticket_category || ((Number(revealedTicket.id) % premiumTickets.length) + 1);
-            
-            const ticketTypeName = typeof ticketCategory === 'number'
-              ? premiumTickets.find((t) => t.id === ticketCategory)?.name
-              : undefined;
-
+            // Utiliser directement le ticket pour obtenir le style
             const ticketStyle = getTicketStyle(
               revealedTicket.id,
               revealedTicket.is_revealed,
-              ticketCategory
+              revealedTicket,
             );
-            
+
             const gradientColors = getScratchGradientColors(ticketStyle.name);
 
             return (
@@ -394,7 +378,9 @@ const getTicketStyle = (
                   <DialogTitle
                     className={`text-center text-2xl font-bold ${ticketStyle.textColor}`}
                   >
-                    {revealed ? revealedTicket.prize.prize_name : `Ticket ${ticketStyle.name}`}
+                    {revealed
+                      ? revealedTicket.prize.prize_name
+                      : `Ticket ${getCategoryFromPrizeName(revealedTicket.prize.prize_name)}`}
                   </DialogTitle>
                   <DialogDescription
                     className={`text-center font-medium ${ticketStyle.textColor.replace('text-', 'text-opacity-80 text-')}`}
@@ -432,7 +418,7 @@ const getTicketStyle = (
                             setIsModalOpen(false);
                             setRevealed(false);
                             setRevealedTicket(null);
-                            setScratchKey(prev => prev + 1);
+                            setScratchKey((prev) => prev + 1);
                           }}
                         >
                           Collecter
