@@ -46,13 +46,11 @@ export default function AccountView() {
     }
     const result = await response.json();
     setPointsHistory(result.data);
-    console.log(result.data);
   };
 
   const getUserStats = async () => {
     const response = await fetch('/api/users/stats');
     const result = await response.json();
-    console.log({ result });
     setUserStats(result);
   };
 
