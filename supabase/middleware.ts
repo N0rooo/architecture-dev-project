@@ -32,26 +32,67 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // Define route categories
   const authRoutes = ['/login', '/signup'];
-  const protectedRoutes = ['/account', '/'];
+  const protectedRoutes = ['/account', '/leaderboard'];
   const protectedApiRoutes = ['/api/cashprize'];
+  const currentPath = request.nextUrl.pathname;
+  const isAdminRoute = currentPath.startsWith('/admin');
+  const isAuthRoute = authRoutes.includes(currentPath);
+  const isProtectedRoute = protectedRoutes.includes(currentPath);
+  const isProtectedApiRoute = protectedApiRoutes.includes(currentPath);
 
-  const isProtectedRoute = protectedRoutes.includes(request.nextUrl.pathname);
-  const isAuthRoute = authRoutes.includes(request.nextUrl.pathname);
+  // If user is not authenticated
+  if (!user) {
+    // Allow only auth routes
+    if (isAuthRoute) {
+      return supabaseResponse;
+    }
 
-  if (isProtectedRoute && !user) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    // Return 401 for protected API routes
+    if (isProtectedApiRoute) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Redirect to login for protected routes or admin routes
+    if (isProtectedRoute || isAdminRoute) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+
+    // Allow public routes
+    return supabaseResponse;
   }
 
-  const isProtectedApiRoute = protectedApiRoutes.includes(request.nextUrl.pathname);
+  // User is authenticated - check role
+  const { data: roleData } = await supabase
+    .from('user_role')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
+  const isAdmin = roleData?.role === 'admin';
 
-  if (isProtectedApiRoute && !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // If user is admin
+  if (isAdmin) {
+    // Redirect away from auth routes (login/signup)
+    if (isAuthRoute) {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+
+    // Allow all other routes for admins
+    return supabaseResponse;
   }
 
-  if (isAuthRoute && user) {
+  // User is authenticated but not admin
+  // Redirect away from auth routes
+  if (isAuthRoute) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
+  // Block admin routes for non-admin users
+  if (isAdminRoute) {
+    return NextResponse.redirect(new URL('/', request.url));
+  }
+
+  // Allow all other routes for authenticated non-admin users
   return supabaseResponse;
 }

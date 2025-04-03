@@ -1,6 +1,6 @@
 'use client';
 
-import { CircleUserRound, LogOut, Menu } from 'lucide-react';
+import { CircleUserRound, LogOut, Menu, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -20,6 +20,7 @@ import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/s
 import { cn } from '@/lib/utils';
 import { User } from '@supabase/supabase-js';
 import LogoutButton from './logoutButton';
+import { useProfile } from '@/context/profileProvider';
 
 const navigation = [
   { name: 'Accueil', href: '/' },
@@ -32,6 +33,8 @@ export function Header({ user }: { user: User | null }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+
+  const { role } = useProfile();
 
   const getInitials = (email: string) => {
     if (!email) return '';
@@ -102,6 +105,14 @@ export function Header({ user }: { user: User | null }) {
                     <span>Profile</span>
                   </DropdownMenuItem>
                 </Link>
+                {role === 'admin' && (
+                  <Link href="/admin">
+                    <DropdownMenuItem>
+                      <Settings />
+                      <span>Admin</span>
+                    </DropdownMenuItem>
+                  </Link>
+                )}
                 <DropdownMenuItem onClick={logout}>
                   <LogOut />
                   <span>Log out</span>

@@ -8,6 +8,7 @@ type ProfileContextType = {
   profile: Profile | null;
   setProfile: (value: Profile | null) => void;
   user: User | null;
+  role: 'admin' | 'user' | undefined;
   loading: boolean;
   removePointsOnClientSide: (points: number) => void;
 };
@@ -16,6 +17,7 @@ const ProfileContext = createContext<ProfileContextType | undefined>(undefined);
 
 export function ProfileProvider({ children, user }: { children: ReactNode; user: User }) {
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [role, setRole] = useState<'admin' | 'user' | undefined>(undefined);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchProfile = async () => {
@@ -24,7 +26,8 @@ export function ProfileProvider({ children, user }: { children: ReactNode; user:
         throw new Error('Failed to fetch user');
       }
       const data = await response.json();
-      setProfile(data);
+      setProfile(data.data);
+      setRole(data.role);
       setLoading(false);
     };
     fetchProfile();
@@ -39,7 +42,7 @@ export function ProfileProvider({ children, user }: { children: ReactNode; user:
 
   return (
     <ProfileContext.Provider
-      value={{ profile, setProfile, user, loading, removePointsOnClientSide }}
+      value={{ profile, setProfile, user, loading, removePointsOnClientSide, role }}
     >
       {children}
     </ProfileContext.Provider>
