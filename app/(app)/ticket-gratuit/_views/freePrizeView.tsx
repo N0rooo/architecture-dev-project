@@ -119,7 +119,7 @@ export default function FreePrizeView() {
                 <Trophy className="mr-2 h-5 w-5 text-amber-500" />
                 <div>
                   <p className="text-xs text-slate-500">Récompense max</p>
-                  <p className="text-sm font-medium">100 points</p>
+                  <p className="text-sm font-medium">200 points</p>
                 </div>
               </div>
             </div>

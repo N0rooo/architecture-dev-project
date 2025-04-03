@@ -1,36 +1,150 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Scratch Ticket Game Platform
 
-## Getting Started
+Une application web moderne construite avec Next.js 15, React 19, et Supabase, offrant une expérience de jeu de tickets à gratter gratuits avec un système de points.
 
-First, run the development server:
+## Fonctionnalités
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- 🎮 **Système de Jeu**
+
+  - Tickets à gratter virtuels gratuits
+  - Différentes catégories de tickets
+  - Animation de grattage interactive
+  - Système de points et récompenses
+
+- 🏆 **Système de Points**
+
+  - Accumulation de points par ticket
+  - Historique des points gagnés
+  - Classement des joueurs (Leaderboard)
+  - Statistiques personnelles
+
+- 🔐 **Système d'Authentification**
+
+  - Inscription et connexion utilisateur
+  - Gestion sécurisée des sessions
+  - Contrôle d'accès basé sur les rôles (Admin/Utilisateur)
+
+- 👥 **Gestion des Utilisateurs**
+
+  - Profils utilisateurs
+  - Tableau de bord administrateur
+  - Suivi des activités utilisateur
+
+- 🎨 **Interface Moderne**
+
+  - Composants UI Radix
+  - Design responsive avec Tailwind CSS
+  - Notifications avec Sonner
+  - Animations personnalisées
+
+- 🔧 **Expérience Développeur**
+  - Support TypeScript
+  - Tests avec Jest
+  - Configuration ESLint et Prettier
+  - Hooks Git avec Husky
+  - Pour visualiser le diagramme d'architecture :
+    - Sur GitHub : Le diagramme est automatiquement rendu
+    - Dans VS Code : Installer l'extension "Markdown Preview Mermaid Support"
+    - En ligne : Copier le code du diagramme sur [Mermaid Live Editor](https://mermaid.live)
+  - Génération automatique des types Supabase
+
+## Documentation du Projet
+
+- [Documentation Architecture](docs/ARCHITECTURE.md) - Architecture système et relations entre composants
+- [Documentation API](https://nextjs.org/docs/app/api-reference) - Référence API Next.js
+
+## Prérequis
+
+- Node.js 18+
+- Gestionnaire de paquets PNPM
+- Compte et projet Supabase
+
+## Configuration de l'Environnement
+
+1. Créez un fichier `.env.local` à la racine du projet avec les variables suivantes :
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SERVICE_ROLE_KEY=your_service_role_key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Démarrage
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Installer les dépendances :
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+pnpm install
+```
 
-## Learn More
+2. Générer les types Supabase :
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+pnpm db-types
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Lancer le serveur de développement :
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+pnpm dev
+```
 
-## Deploy on Vercel
+Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur pour voir le résultat.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Scripts Disponibles
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `pnpm dev` - Démarrer le serveur de développement avec Turbopack
+- `pnpm build` - Build pour la production
+- `pnpm start` - Démarrer le serveur de production
+- `pnpm test` - Lancer les tests
+- `pnpm lint` - Lancer ESLint
+- `pnpm prettier` - Formater le code
+- `pnpm db-types` - Générer les types Supabase
+
+## Tests
+
+Le projet utilise Jest et React Testing Library pour les tests. Lancez les tests avec :
+
+```bash
+pnpm test
+```
+
+## Qualité du Code
+
+- ESLint pour le linting
+- Prettier pour le formatage
+- Husky pour les hooks Git
+- Lint-staged pour les vérifications pre-commit
+
+## Stack Technique
+
+- **Framework:** Next.js 15
+- **Langage:** TypeScript
+- **Base de données:** Supabase
+- **Authentification:** Supabase Auth
+- **Composants UI:** Radix UI
+- **Styling:** Tailwind CSS
+- **Formulaires:** React Hook Form
+- **Validation:** Zod
+- **Tests:** Jest + React Testing Library
+- **Gestion d'État:** React Hooks
+
+## Structure de la Base de Données
+
+- **users** - Informations utilisateur
+- **points_history** - Historique des points
+- **user_prize_attempts** - Tentatives et tickets joués
+- **prizes** - Configuration des récompenses
+- **user_role** - Rôles utilisateur (admin/user)
+
+## Contribution
+
+1. Forkez le dépôt
+2. Créez votre branche de fonctionnalité (`git checkout -b feature/amazing-feature`)
+3. Committez vos changements (`git commit -m 'Add some amazing feature'`)
+4. Poussez vers la branche (`git push origin feature/amazing-feature`)
+5. Ouvrez une Pull Request
+
+## Licence
+
+Ce projet est privé et n'est pas sous licence pour une utilisation publique.
