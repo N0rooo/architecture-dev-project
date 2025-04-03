@@ -21,12 +21,17 @@ export const loginService = async (email: string, password: string) => {
   };
 };
 
-export const signupService = async (email: string, password: string) => {
+export const signupService = async (email: string, password: string, username: string) => {
   const supabase = await createAppServerClient();
 
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
+    options: {
+      data: {
+        username,
+      },
+    },
   });
 
   if (error) {

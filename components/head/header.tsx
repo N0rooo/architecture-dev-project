@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { User } from '@supabase/supabase-js';
 import LogoutButton from './logoutButton';
 import { useProfile } from '@/context/profileProvider';
+import { useCountdown } from '@/context/countdownProvider';
 
 const navigation = [
   { name: 'Accueil', href: '/' },
@@ -33,6 +34,7 @@ export function Header({ user }: { user: User | null }) {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
+  const { resetCountdown } = useCountdown();
 
   const { role } = useProfile();
 
@@ -51,7 +53,9 @@ export function Header({ user }: { user: User | null }) {
         },
       });
       if (response.ok) {
-        router.push('/login');
+        localStorage.removeItem('prizeCountdown');
+        resetCountdown();
+        router.push('/connexion');
       } else {
         // Handle non-ok response
         alert('Logout failed. Please try again.');
@@ -122,10 +126,10 @@ export function Header({ user }: { user: User | null }) {
           ) : (
             <>
               <Button variant="outline" asChild>
-                <Link href="/login">Sign In</Link>
+                <Link href="/connexion">Sign In</Link>
               </Button>
               <Button asChild>
-                <Link href="/login">Sign Up</Link>
+                <Link href="/connexion">Sign Up</Link>
               </Button>
             </>
           )}
@@ -167,12 +171,12 @@ export function Header({ user }: { user: User | null }) {
                 ) : (
                   <>
                     <Button variant="outline" asChild>
-                      <Link href="/login" onClick={() => setIsOpen(false)}>
+                      <Link href="/connexion" onClick={() => setIsOpen(false)}>
                         Sign In
                       </Link>
                     </Button>
                     <Button asChild>
-                      <Link href="/login" onClick={() => setIsOpen(false)}>
+                      <Link href="/connexion" onClick={() => setIsOpen(false)}>
                         Sign Up
                       </Link>
                     </Button>

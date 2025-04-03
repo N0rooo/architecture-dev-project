@@ -17,9 +17,7 @@ export type TicketWithPrize = Ticket & {
   prize: Prize;
   ticket_category?: number;
 };
-//COMBINED TYPES
 
-// CUSTOM TYPES
 export interface UserStats {
   totalWon: number;
   scratched: number;

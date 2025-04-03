@@ -17,6 +17,7 @@ describe('Auth Services', () => {
 
   const mockEmail = faker.internet.email();
   const mockPassword = faker.internet.password();
+  const mockUsername = faker.internet.username();
   beforeEach(() => {
     (createAppServerClient as jest.Mock).mockResolvedValue(mockSupabase);
   });
@@ -46,7 +47,7 @@ describe('Auth Services', () => {
       const mockResponse = { data: { user: { id: '123' } }, error: null };
       mockSupabase.auth.signUp.mockResolvedValue(mockResponse);
 
-      const result = await signupService(mockEmail, mockPassword);
+      const result = await signupService(mockEmail, mockPassword, mockUsername);
       expect(result.data).toEqual(mockResponse.data);
       expect(result.error).toBeNull();
     });
@@ -55,7 +56,7 @@ describe('Auth Services', () => {
       const mockError = new Error('Email already exists');
       mockSupabase.auth.signUp.mockResolvedValue({ data: null, error: mockError });
 
-      const result = await signupService(mockEmail, mockPassword);
+      const result = await signupService(mockEmail, mockPassword, mockUsername);
       expect(result.data).toBeNull();
       expect(result.error).toEqual(mockError);
     });
