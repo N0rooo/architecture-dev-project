@@ -1,7 +1,15 @@
 'use client';
+import { ScratchToReveal } from '@/components/magicui/scratch-to-reveal';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,32 +18,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCountdown } from '@/context/countdownProvider';
 import { useMyTickets } from '@/context/myTicketsProvider';
+import { TicketWithPrize } from '@/types/types';
 import {
   Calendar,
   Clock,
   Filter,
   Gift,
   HandCoins,
-  Search,
-  Ticket,
-  Sparkles,
   Loader2,
+  Search,
+  Sparkles,
+  Ticket,
 } from 'lucide-react';
-import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { TicketWithPrize } from '@/types/types';
-import { ScratchToReveal } from '@/components/magicui/scratch-to-reveal';
-import { useCountdown } from '@/context/countdownProvider';
-
-// Importation des types de tickets depuis le fichier de données
-import { premiumTickets, PremiumTicket } from '@/data/tickets';
+import { useEffect, useState } from 'react';
+import { PremiumTicket, premiumTickets } from '@/data/tickets';
 
 export default function MyTicketsView() {
   // États et hooks
@@ -47,77 +45,79 @@ export default function MyTicketsView() {
   const [revealedTicket, setRevealedTicket] = useState<TicketWithPrize | null>(null);
   const [error, setError] = useState('');
   const [revealed, setRevealed] = useState(false);
+  const [scratchKey, setScratchKey] = useState(0); // Clé unique pour forcer le re-rendu du composant ScratchToReveal
   const { countdown, formatTime } = useCountdown();
 
-  /**
-   * Détermine le style d'un ticket en fonction de son ID et de son état de révélation
-   */
-  const getTicketStyle = (
-    id: string | number,
-    isRevealed: boolean,
-    ticketType?: string | number,
-  ) => {
-    // Trouver le style correspondant au ticket
-    let ticketStyle: PremiumTicket;
-
-    if (isRevealed && ticketType !== undefined) {
-      // Pour les tickets révélés, utiliser la catégorie du prix
-      const categoryId =
-        typeof ticketType === 'string'
-          ? premiumTickets.findIndex((t) => t.name === ticketType) + 1
-          : ticketType;
-
-      const foundTicket = premiumTickets.find((t) => t.id === categoryId);
-      ticketStyle = foundTicket || premiumTickets[0]; // Fallback sur Argent
-    } else {
-      // Pour les tickets non révélés
-      if (typeof ticketType === 'number') {
-        // Si un type est explicitement spécifié
-        const foundTicket = premiumTickets.find((t) => t.id === ticketType);
-        ticketStyle = foundTicket || premiumTickets[0];
-      } else {
-        // Correspondance basée sur l'ID du ticket
-        const numericId = Number(id);
-        const categoryId = ((numericId - 1) % premiumTickets.length) + 1;
-        ticketStyle = premiumTickets.find((t) => t.id === categoryId) || premiumTickets[0];
-      }
+  // Réinitialiser l'état revealed quand le modal est fermé
+  useEffect(() => {
+    if (!isModalOpen) {
+      setRevealed(false);
+      setScratchKey(prev => prev + 1); // Incrémenter la clé pour forcer le re-rendu
     }
+  }, [isModalOpen]);
 
-    // Déterminer la couleur du bouton correspondant au style du ticket
-    const buttonBgMap = {
-      'bg-slate-100': 'bg-slate-600 hover:bg-slate-700',
-      'bg-amber-100': 'bg-amber-600 hover:bg-amber-700',
-      'bg-cyan-100': 'bg-cyan-600 hover:bg-cyan-700',
-      'bg-purple-100': 'bg-purple-600 hover:bg-purple-700',
-    };
+  // Fonction améliorée pour obtenir le style de ticket
+// Fonction améliorée pour obtenir le style de ticket
+const getTicketStyle = (
+  id: string | number,
+  isRevealed: boolean,
+  ticketType?: string | number,
+) => {
+  // Convertir l'ID en nombre si c'est une chaîne
+  const numericId = typeof id === 'string' ? parseInt(id, 10) : id;
+  
+  let ticketStyle: PremiumTicket;
 
-    const buttonBg =
-      buttonBgMap[ticketStyle.color as keyof typeof buttonBgMap] ||
-      'bg-slate-600 hover:bg-slate-700';
+  if (isRevealed && ticketType !== undefined) {
+    // Pour les tickets révélés, utiliser la catégorie fournie
+    const categoryId = typeof ticketType === 'string'
+      ? premiumTickets.findIndex((t) => t.name === ticketType) + 1
+      : ticketType;
 
-    return {
-      color: ticketStyle.color,
-      textColor: ticketStyle.textColor,
-      buttonBg: buttonBg,
-      name: ticketStyle.name,
-    };
+    const foundTicket = premiumTickets.find((t) => t.id === categoryId);
+    ticketStyle = foundTicket || premiumTickets[0];
+  } else if (typeof ticketType === 'number') {
+    // Si un type de ticket spécifique est fourni (non révélé mais avec un type connu)
+    const foundTicket = premiumTickets.find((t) => t.id === ticketType);
+    ticketStyle = foundTicket || premiumTickets[0];
+  } else {
+    // Pour les tickets non révélés sans type spécifié,
+    // utiliser une méthode déterministe basée sur l'ID
+    const safeId = Math.max(1, numericId); // S'assurer que l'ID est au moins 1
+    const categoryId = ((safeId - 1) % premiumTickets.length) + 1;
+    ticketStyle = premiumTickets.find((t) => t.id === categoryId) || premiumTickets[0];
+  }
+
+  // Mapper les couleurs de fond des boutons
+  const buttonBgMap = {
+    'bg-slate-100': 'bg-slate-600 hover:bg-slate-700',
+    'bg-amber-100': 'bg-amber-600 hover:bg-amber-700',
+    'bg-cyan-100': 'bg-cyan-600 hover:bg-cyan-700',
+    'bg-purple-100': 'bg-purple-600 hover:bg-purple-700',
   };
 
-  /**
-   * Filtre et trie les tickets selon les critères de recherche et de filtre
-   */
+  const buttonBg =
+    buttonBgMap[ticketStyle.color as keyof typeof buttonBgMap] ||
+    'bg-slate-600 hover:bg-slate-700';
+
+  return {
+    color: ticketStyle.color,
+    textColor: ticketStyle.textColor,
+    buttonBg: buttonBg,
+    name: ticketStyle.name,
+  };
+};
+
   const getFilteredTickets = () => {
     if (!tickets) return [];
 
     return (
       tickets
         .filter((ticket) => {
-          // Filtrage par texte de recherche
           const matchesSearch = ticket.is_revealed
             ? ticket.prize.prize_name.toLowerCase().includes(search.toLowerCase())
             : 'Non révélé'.toLowerCase().includes(search.toLowerCase());
 
-          // Filtrage par état de révélation
           const matchesFilter =
             filter === 'all' ||
             (filter === 'revealed' && ticket.is_revealed) ||
@@ -125,7 +125,6 @@ export default function MyTicketsView() {
 
           return matchesSearch && matchesFilter;
         })
-        // Tri: tickets non révélés d'abord, puis par date
         .sort((a, b) => {
           if (a.is_revealed !== b.is_revealed) {
             return a.is_revealed ? 1 : -1;
@@ -139,9 +138,6 @@ export default function MyTicketsView() {
 
   const filteredTickets = getFilteredTickets();
 
-  /**
-   * Calcule les statistiques des tickets
-   */
   const getTicketStats = () => {
     const totalTickets = tickets?.length || 0;
     const revealedTickets = tickets?.filter((t) => t.is_revealed).length || 0;
@@ -155,10 +151,7 @@ export default function MyTicketsView() {
   };
 
   const { totalTickets, revealedTickets, unrevealedTickets, totalValue } = getTicketStats();
-
-  /**
-   * Formate une date au format français
-   */
+  
   const formatDate = (dateString: string | null | undefined): string => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -171,9 +164,6 @@ export default function MyTicketsView() {
     });
   };
 
-  /**
-   * Gère la révélation d'un ticket
-   */
   const handleRevealTicket = async (ticketId: number) => {
     try {
       setRevealLoadingId(ticketId);
@@ -190,8 +180,15 @@ export default function MyTicketsView() {
         throw new Error(errorData.message || 'Erreur lors de la révélation du ticket');
       }
 
-      setRevealedTicket(tickets?.find((t) => t.id === ticketId) ?? null);
-      setIsModalOpen(true);
+      // Trouver le ticket et le définir comme révélé
+      const ticket = tickets?.find((t) => t.id === ticketId);
+      if (ticket) {
+        setRevealedTicket(ticket);
+        setIsModalOpen(true);
+        // Réinitialiser l'état revealed et incrémenter la clé pour forcer le re-rendu
+        setRevealed(false);
+        setScratchKey(prev => prev + 1);
+      }
     } catch (err) {
       setError(
         err instanceof Error
@@ -204,17 +201,11 @@ export default function MyTicketsView() {
     }
   };
 
-  /**
-   * Gère la fin du grattage d'un ticket
-   */
   const handleScratchComplete = () => {
     refreshTickets();
     setRevealed(true);
   };
 
-  /**
-   * Obtient les couleurs de gradient pour le composant ScratchToReveal
-   */
   const getScratchGradientColors = (ticketName: string): [string, string, string] => {
     const gradientMap: Record<string, [string, string, string]> = {
       Argent: ['#CBD5E1', '#94A3B8', '#E2E8F0'],
@@ -226,7 +217,6 @@ export default function MyTicketsView() {
     return gradientMap[ticketName as keyof typeof gradientMap] || ['#A97CF8', '#F38CB8', '#FDCC92'];
   };
 
-  // Affichage du skeleton loader pendant le chargement
   if (loading) {
     return (
       <div className="container mx-auto max-w-7xl py-10">
@@ -257,7 +247,6 @@ export default function MyTicketsView() {
 
   return (
     <div className="container mx-auto max-w-7xl py-10">
-      {/* En-tête avec titre et résumé des statistiques */}
       <div className="mb-8 flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
         <div>
           <h1 className="text-3xl font-bold text-slate-800">Mes Tickets</h1>
@@ -269,7 +258,6 @@ export default function MyTicketsView() {
         </div>
       </div>
 
-      {/* Cartes de statistiques */}
       <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
         <StatCard
           color={premiumTickets[0].color}
@@ -305,7 +293,6 @@ export default function MyTicketsView() {
         />
       </div>
 
-      {/* Barre d'outils de recherche et de filtrage */}
       <div className="mb-8 flex flex-col gap-4 rounded-xl bg-slate-50 p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="relative max-w-xs">
           <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -341,7 +328,6 @@ export default function MyTicketsView() {
         </div>
       </div>
 
-      {/* Grille de tickets */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
         {filteredTickets.length === 0 ? (
           <EmptyTicketsState
@@ -353,13 +339,12 @@ export default function MyTicketsView() {
           />
         ) : (
           filteredTickets.map((ticket) => {
-            // Déterminer la catégorie pour le style du ticket
             const ticketCategory = ticket.is_revealed
               ? (ticket.prize.prize_category ?? undefined)
-              : ((Number(ticket.id) - 1) % premiumTickets.length) + 1;
-
+              : ((Number(ticket.id) % premiumTickets.length) + 1);
+          
             const ticketStyle = getTicketStyle(ticket.id, ticket.is_revealed, ticketCategory);
-
+          
             return (
               <TicketCard
                 key={ticket.id}
@@ -373,23 +358,32 @@ export default function MyTicketsView() {
           })
         )}
       </div>
-
-      {/* Dialog de révélation */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <Dialog open={isModalOpen} onOpenChange={(open) => {
+        if (!open) {
+          // Réinitialiser les états lors de la fermeture du modal
+          setRevealed(false);
+          setRevealedTicket(null);
+          setScratchKey(prev => prev + 1);
+        }
+        setIsModalOpen(open);
+      }}>
         {revealedTicket &&
           (() => {
-            // Récupérer le style pour la personnalisation du dialog
-            const ticketTypeName = revealedTicket.is_revealed
-              ? revealedTicket.prize.prize_category !== null
-                ? premiumTickets.find((t) => t.id === revealedTicket.prize.prize_category)?.name
-                : undefined
+            // Déterminer correctement le type de ticket
+            const ticketCategory = revealedTicket.is_revealed
+              ? (revealedTicket.prize.prize_category ?? undefined)
+              : revealedTicket.ticket_category || ((Number(revealedTicket.id) % premiumTickets.length) + 1);
+            
+            const ticketTypeName = typeof ticketCategory === 'number'
+              ? premiumTickets.find((t) => t.id === ticketCategory)?.name
               : undefined;
 
             const ticketStyle = getTicketStyle(
               revealedTicket.id,
               revealedTicket.is_revealed,
-              ticketTypeName,
+              ticketCategory
             );
+            
             const gradientColors = getScratchGradientColors(ticketStyle.name);
 
             return (
@@ -412,7 +406,9 @@ export default function MyTicketsView() {
                 </DialogHeader>
 
                 <div className="flex justify-center p-4">
+                  {/* Ajouter la clé pour forcer le re-rendu */}
                   <ScratchToReveal
+                    key={scratchKey}
                     className={`flex items-center justify-center overflow-hidden rounded-2xl ${ticketStyle.color} shadow-lg`}
                     gradientColors={gradientColors}
                     height={300}
@@ -436,6 +432,7 @@ export default function MyTicketsView() {
                             setIsModalOpen(false);
                             setRevealed(false);
                             setRevealedTicket(null);
+                            setScratchKey(prev => prev + 1);
                           }}
                         >
                           Collecter
@@ -483,9 +480,6 @@ export default function MyTicketsView() {
   );
 }
 
-/**
- * Composant pour afficher une carte de statistique
- */
 interface StatCardProps {
   title: string;
   value: number | string;
@@ -511,9 +505,6 @@ function StatCard({ title, value, icon, color, textColor, isValueString = false 
   );
 }
 
-/**
- * Composant pour afficher un état vide (aucun ticket trouvé)
- */
 interface EmptyTicketsStateProps {
   hasFilters: boolean;
   onResetFilters: () => void;
@@ -540,9 +531,6 @@ function EmptyTicketsState({ hasFilters, onResetFilters }: EmptyTicketsStateProp
   );
 }
 
-/**
- * Composant pour afficher une carte de ticket
- */
 interface TicketCardProps {
   ticket: TicketWithPrize;
   ticketStyle: {
@@ -613,9 +601,6 @@ function TicketCard({ ticket, ticketStyle, formatDate, isRevealing, onReveal }: 
   );
 }
 
-/**
- * Composant pour le contenu d'un ticket révélé
- */
 interface RevealedTicketContentProps {
   ticket: TicketWithPrize;
   ticketStyle: {
@@ -650,9 +635,6 @@ function RevealedTicketContent({ ticket, ticketStyle, formatDate }: RevealedTick
   );
 }
 
-/**
- * Composant pour le contenu d'un ticket non révélé
- */
 interface UnrevealedTicketContentProps {
   ticketStyle: {
     color: string;
